@@ -1,0 +1,16 @@
+{
+  "name": "auto-order-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/GuyShuster/AutoOrderBot.git",
+  "author": "Guy Shuster <guyshu@post.bgu.ac.il>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.26.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.10.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4"
+  }
+}
