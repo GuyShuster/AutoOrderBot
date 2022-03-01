@@ -8,7 +8,6 @@ function main() {
 
 	setTimeout(() => {
 		telegramBotWrapper.sendMessage('Update agter calculation');
-		process.exit(0);
 	}, 10000);
 }
 
