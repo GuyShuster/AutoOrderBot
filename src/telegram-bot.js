@@ -20,7 +20,7 @@ class TelegramBotWrapper {
 				this.telegramBot.sendMessage(chatId, 'Hey Baybz ❤\nOCD bot updates here, stay tuned...');
 				this.chatIds.push(chatId);
 			} else if (!this.sentWarning) {
-				this.telegramBot.sendMessage(chatId, 'All messages here will be ignored, this channel is for updates only...');
+				this.telegramBot.sendMessage(chatId, 'All following messages here will be ignored, this channel is for updates only...');
 				this.sentWarning = true;
 			}
 		});

@@ -1,8 +1,30 @@
 import TelegramBotWrapper from './telegram-bot.js';
 import cron from 'cron';
+import config from './config.js';
 
 async function main() {
 	telegramBotWrapper.sendMessage('Hey, from crontab!');
+}
+
+function sendAlert(minutesToGo) {
+	const alertString = `
+		****************** ALERT! *******************
+		******* Bot will launch in ${minutesToGo} minutes ********
+		*********************************************
+	`;
+	telegramBotWrapper.sendMessage(alertString);
+}
+
+function normalizeAlertTime(minutesBack) {
+	const minuteDifference = config.cronJob.startTimeMinutes - minutesBack;
+	const hours = minuteDifference < 0 ? config.cronJob.startTimeHours - 1 : config.cronJob.startTimeHours;
+	const minutes = minuteDifference < 0 ? 60 - (minuteDifference * -1) : minuteDifference;
+
+	return { hours, minutes, minutesAsString };
+}
+
+function minutesAsString(minutes) {
+	return minutes < 9 ? `0${minutes}` : `${minutes}`;
 }
 
 // Init telegram channel
@@ -10,7 +32,18 @@ const telegramBotWrapper = new TelegramBotWrapper();
 telegramBotWrapper.init();
 console.log('Started telegram bot');
 
-// Schedule main task to every day at ...
-const hours = 22;
-const minutes = 4;
-new cron.CronJob(`00 ${minutes} ${hours} * * *`, main, null, true, 'Asia/Jerusalem');
+// Schedule Alerts
+const { hours: firstAlertHours, minutes: firstAlertMinutes } = normalizeAlertTime(config.cronJob.firstAlertMinutesBack);
+const firstAlertMinutesAsString = minutesAsString(firstAlertMinutes);
+new cron.CronJob(`00 ${firstAlertMinutes} ${firstAlertHours} * * *`, () => sendAlert(config.cronJob.firstAlertMinutesBack), null, true, 'Asia/Jerusalem');
+console.log(`First alert will be sent at ${firstAlertHours}:${firstAlertMinutesAsString}`);
+
+const { hours: secondAlertHours, minutes: secondAlertMinutes } = normalizeAlertTime(config.cronJob.secondAlertMinutesBack);
+const secondAlertMinutesAsString = minutesAsString(secondAlertMinutes);
+new cron.CronJob(`00 ${secondAlertMinutes} ${secondAlertHours} * * *`, () => sendAlert(config.cronJob.secondAlertMinutesBack), null, true, 'Asia/Jerusalem');
+console.log(`Second alert will be sent at ${secondAlertHours}:${secondAlertMinutesAsString}`);
+
+// Schedule main job
+const cronJobMinutesAsString = minutesAsString(config.cronJob.startTimeMinutes);
+new cron.CronJob(`00 ${config.cronJob.startTimeMinutes} ${config.cronJob.startTimeHours} * * *`, main, null, true, 'Asia/Jerusalem');
+console.log(`Main cron job will be executed at ${config.cronJob.startTimeHours}:${cronJobMinutesAsString}`);
