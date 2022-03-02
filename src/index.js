@@ -1,14 +1,16 @@
 import TelegramBotWrapper from './telegram-bot.js';
+import cron from 'cron';
 
-function main() {
-	const telegramBotWrapper = new TelegramBotWrapper();
-	telegramBotWrapper.init();
-	
-	console.log('started bot');
-
-	setTimeout(() => {
-		telegramBotWrapper.sendMessage('Update agter calculation');
-	}, 10000);
+async function main() {
+	telegramBotWrapper.sendMessage('Hey, from crontab!');
 }
 
-main();
+// Init telegram channel
+const telegramBotWrapper = new TelegramBotWrapper();
+telegramBotWrapper.init();
+console.log('Started telegram bot');
+
+// Schedule main task to every day at ...
+const hours = 22;
+const minutes = 4;
+new cron.CronJob(`00 ${minutes} ${hours} * * *`, main, null, true, 'Asia/Jerusalem');
