@@ -1,6 +1,6 @@
-import TelegramBotWrapper from './telegram-bot.js';
 import cron from 'cron';
-import config from './config.js';
+import TelegramBotWrapper from '../src/telegram-bot.js';
+import config from '../src/config.js';
 
 async function main() {
 	telegramBotWrapper.sendMessage('Hey, from crontab!');

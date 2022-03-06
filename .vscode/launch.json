@@ -7,11 +7,21 @@
     {
       "type": "pwa-node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Launch Cron Job",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}\\src\\index.js",
+      "program": "${workspaceFolder}\\bin\\launch-cron-job.js",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Launch Single Order",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}\\bin\\launch-single-order.js",
       "console": "integratedTerminal"
     }
   ]
