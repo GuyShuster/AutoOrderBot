@@ -90,7 +90,7 @@ async function completeCheckout(checkoutId, phone) {
 	}
 }
 
-async function singleOrder(date, requestedTime, amoutOfPeople) {
+async function makeReservation(date, requestedTime, amoutOfPeople, { testing = false } = {}) {
 	try {
 		const { time: chosenTime, ...additionalAvailabilityData } = await getAvailableTimeOnDate(date, requestedTime, amoutOfPeople);
 		const checkoutId = await chooseAvailableTimeOnDate(date, chosenTime, amoutOfPeople, additionalAvailabilityData);
@@ -100,26 +100,31 @@ async function singleOrder(date, requestedTime, amoutOfPeople) {
 			'email':'shlomo@gmail.com',
 			'phone':'0549439700',
 		});
-		const ticketUrl = await completeCheckout(checkoutId, '0549439700');
 
-		if (ticketUrl) {
-			// TODO: Succeeded
+		if (testing) {
+			console.log(`Success! got to one step before reservation completion. Checkout ID: ${checkoutId}`);
 		} else {
-			// TODO: Failed
+			const ticketUrl = await completeCheckout(checkoutId, '0549439700');
+	
+			if (ticketUrl) {
+				// TODO: Succeeded
+			} else {
+				// TODO: Failed
+			}
 		}
 	} catch (error) {
 		console.log(error.message);
 	}
 }
 
-async function launchOrderBot() {
-	const date = '20220505';
-	const time = '1230';
-	const amoutOfPeople = '2';
-	await singleOrder(date, time, amoutOfPeople);
-}
+// async function launchOrderBot() {
+// 	const date = '20220505';
+// 	const time = '1230';
+// 	const amoutOfPeople = '2';
+// 	await singleOrder(date, time, amoutOfPeople);
+// }
 
-export default launchOrderBot;
+export default makeReservation;
 
 // TODO: dont forget not to have for await on axios request to searchAvailability.
 // Launch them all, the one that gets back first wins

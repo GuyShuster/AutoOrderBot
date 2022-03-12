@@ -17,11 +17,11 @@
     {
       "type": "pwa-node",
       "request": "launch",
-      "name": "Launch Single Order",
+      "name": "Test Single Reservation",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}\\bin\\launch-single-order.js",
+      "program": "${workspaceFolder}\\bin\\test-single-reservation.js",
       "console": "integratedTerminal"
     }
   ]
