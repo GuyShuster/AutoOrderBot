@@ -1,4 +1,4 @@
-const config = {
+export default {
 	cronJob: {
 		startTimeHours: 12,
 		startTimeMinutes: 0,
@@ -23,6 +23,9 @@ const config = {
 		'sec-fetch-site': 'same-origin',
 		'Referrer-Policy': 'strict-origin-when-cross-origin',
 	},
+	scheduler: {
+		priorities: [
+			
+		],
+	},
 };
-
-export default config;
