@@ -1,14 +1,26 @@
 import config from './config.js';
 import axios from 'axios';
 
-async function getAvailableTimeOnDate(requestedDate, requestedTime, amoutOfPeople) {
+export class ReservationData {
+	constructor(date, time, amountOfPeople, firstName, lastName, email, phone) {
+		this.date = date;
+		this.time = time;
+		this.amountOfPeople = amountOfPeople;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
+		this.phone = phone;
+	}
+}
+
+async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople) {
 	const requestData = {
 		page_id: config.order.pageId,
 		locale: config.order.locale,
 		criteria: {
 			date: requestedDate,
 			time: requestedTime,
-			size: amoutOfPeople,
+			size: amountOfPeople,
 		},
 	};
 
@@ -29,7 +41,7 @@ async function getAvailableTimeOnDate(requestedDate, requestedTime, amoutOfPeopl
 	}
 }
 
-async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amoutOfPeople, additionalAvailabilityData) {
+async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOfPeople, additionalAvailabilityData) {
 	if (!chosenTime) {
 		throw new Error('Choose available time error: no available time was found');
 	}
@@ -40,7 +52,7 @@ async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amoutOfPeople, 
 		criteria: {
 			date: chosenDate,
 			time: chosenTime,
-			size: amoutOfPeople,
+			size: amountOfPeople,
 		},
 		...additionalAvailabilityData,
 	};
@@ -58,12 +70,15 @@ async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amoutOfPeople, 
 	}
 }
 
-async function fillContactDetails(checkoutId, contactDetails) {
+async function fillContactDetails(checkoutId, firstName, lastName, email, phone) {
 	const requestData = {
 		checkout_id: checkoutId,
 		region_code: config.order.regionCode,
 		remember_me: config.order.rememberMe,
-		...contactDetails
+		first_name: firstName,
+		last_name: lastName,
+		email,
+		phone,
 	};
 
 	try {
@@ -90,19 +105,18 @@ async function completeCheckout(checkoutId, phone) {
 	}
 }
 
-async function makeReservation(date, requestedTime, amoutOfPeople, { testing = false } = {}) {
+export async function makeReservation(reservationData, { testing = false, logger = { log: console.log } } = {}) {
+	if (!(reservationData instanceof ReservationData)) {
+		throw new Error('The function must receive an reservation data instance');
+	}
+
 	try {
-		const { time: chosenTime, ...additionalAvailabilityData } = await getAvailableTimeOnDate(date, requestedTime, amoutOfPeople);
-		const checkoutId = await chooseAvailableTimeOnDate(date, chosenTime, amoutOfPeople, additionalAvailabilityData);
-		await fillContactDetails(checkoutId, {
-			'first_name':'shlomo',
-			'last_name':'shlomo',
-			'email':'shlomo@gmail.com',
-			'phone':'0549439700',
-		});
+		const { time: chosenTime, ...additionalAvailabilityData } = await getAvailableTimeOnDate(reservationData.date, reservationData.time, reservationData.amountOfPeople);
+		const checkoutId = await chooseAvailableTimeOnDate(reservationData.date, chosenTime, reservationData.amountOfPeople, additionalAvailabilityData);
+		await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone);
 
 		if (testing) {
-			console.log(`Success! got to one step before reservation completion. Checkout ID: ${checkoutId}`);
+			logger.log(`Success! got to one step before reservation completion. Checkout ID: ${checkoutId}`);
 		} else {
 			const ticketUrl = await completeCheckout(checkoutId, '0549439700');
 	
@@ -113,18 +127,9 @@ async function makeReservation(date, requestedTime, amoutOfPeople, { testing = f
 			}
 		}
 	} catch (error) {
-		console.log(error.message);
+		logger.log(error.message);
 	}
 }
-
-// async function launchOrderBot() {
-// 	const date = '20220505';
-// 	const time = '1230';
-// 	const amoutOfPeople = '2';
-// 	await singleOrder(date, time, amoutOfPeople);
-// }
-
-export default makeReservation;
 
 // TODO: dont forget not to have for await on axios request to searchAvailability.
 // Launch them all, the one that gets back first wins
