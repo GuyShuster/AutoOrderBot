@@ -120,8 +120,3 @@ export async function makeReservation(reservationData, { testing = false, reques
 	const reservationUrl = await completeCheckout(checkoutId, reservationData.phone);
 	return reservationUrl;
 }
-
-// TODO: dont forget not to have for await on axios request to searchAvailability.
-// Launch them all, the one that gets back first wins
-// TODO: add telegram logs
-// TODO: maybe add request timeouts, increasing time as we go on
