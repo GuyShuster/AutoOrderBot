@@ -1,17 +1,7 @@
 import config from './config.js';
 import axios from 'axios';
+import ReservationData from './reservation-data.js';
 
-export class ReservationData {
-	constructor(date, time, amountOfPeople, firstName, lastName, email, phone) {
-		this.date = date;
-		this.time = time;
-		this.amountOfPeople = amountOfPeople;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.email = email;
-		this.phone = phone;
-	}
-}
 
 async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) {
 	const requestData = {
@@ -103,13 +93,13 @@ async function completeCheckout(checkoutId, phone, timeout) {
 	}
 }
 
-export async function makeReservation(reservationData, { testing = false, requestTimeout = 0 } = {}) {
+export default async function makeReservation(date, time, reservationData, { testing = false, requestTimeout = 0 } = {}) {
 	if (!(reservationData instanceof ReservationData)) {
 		throw new Error('The function must receive an reservation data instance');
 	}
 
-	const { time: chosenTime, ...additionalAvailabilityData } = await getAvailableTimeOnDate(reservationData.date, reservationData.time, reservationData.amountOfPeople, requestTimeout);
-	const checkoutId = await chooseAvailableTimeOnDate(reservationData.date, chosenTime, reservationData.amountOfPeople, additionalAvailabilityData, requestTimeout);
+	const { time: chosenTime, ...additionalAvailabilityData } = await getAvailableTimeOnDate(date, time, reservationData.amountOfPeople, requestTimeout);
+	const checkoutId = await chooseAvailableTimeOnDate(date, chosenTime, reservationData.amountOfPeople, additionalAvailabilityData, requestTimeout);
 	await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone, requestTimeout);
 
 	if (testing) {

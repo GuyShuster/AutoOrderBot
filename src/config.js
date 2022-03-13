@@ -1,3 +1,9 @@
+
+import ReservationData from './reservation-data.js';
+
+const MONTH = 11;
+const YEAR = 2022;
+
 export default {
 	cronJob: {
 		startTimeHours: 12,
@@ -24,7 +30,35 @@ export default {
 		'Referrer-Policy': 'strict-origin-when-cross-origin',
 	},
 	scheduler: {
-		month: 11,
-		year: 2022,
+		month: MONTH,
+		year: YEAR,
 	},
+	orders: [
+		{
+			orderName: 'May and Guy\'s order',
+			weekdaysToSkip: [
+				new Date(YEAR, MONTH - 1, 3),
+			],
+			reservationData: new ReservationData(
+				'2',
+				'גיא',
+				'שוסטר',
+				'guygosha@gmail.com',
+				'0549439700',
+			),
+		},
+		{
+			orderName: 'Eyal and Gali\'s order',
+			weekdaysToSkip: [
+				new Date(YEAR, MONTH - 1, 10),
+			],
+			reservationData: new ReservationData( // TODO: update!!!
+				'2',
+				'מאי',
+				'סבן',
+				'guygosha@gmail.com',
+				'0549439700',
+			),
+		},
+	],
 };

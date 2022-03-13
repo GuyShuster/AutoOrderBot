@@ -1,4 +1,4 @@
-import { validateDates } from '../src/reservation-scheduler.js';
+import { getDateRange } from '../src/reservation-scheduler.js';
 
-validateDates();
+getDateRange();
 process.exit(0);

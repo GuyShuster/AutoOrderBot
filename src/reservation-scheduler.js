@@ -1,10 +1,41 @@
-import {  } from 'date-fns';
+import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday } from 'date-fns';
 import config from './config.js';
 
-export function validateDates() {
+export function getDateRange() {
+	// Check if defined
 	if (!config?.scheduler?.month || !config?.scheduler?.year) {
 		throw new Error('No month or year provided');
 	}
+
+	// Check if month is valid
+	const monthIndex = config.scheduler.month - 1;
+	const year = config.scheduler.year;
+	if (year < getYear(Date.now()) || monthIndex < 0 || monthIndex > 11) {
+		throw new Error(`Month ${monthIndex + 1} and year ${year} are invalid`);
+	}
+
+	const randomDateInMonth = new Date(year, monthIndex, monthIndex);
+	const dateInterval = {
+		start: startOfMonth(randomDateInMonth),
+		end: endOfMonth(randomDateInMonth),
+	};
+
+	// Check if all weekdays to skip are within range
+	const weekdaysToSkip = config?.orders.map(order => order.weekdaysToSkip).flatMap(weekDay => weekDay);
+	const datesOutsideOfRange = weekdaysToSkip.filter(date => !isWithinInterval(date, dateInterval));
+	if (datesOutsideOfRange.length) {
+		throw new Error(`Some dates are not in within ${monthIndex + 1}/${year}`);
+	}
+
+	const daysOfInterval = eachDayOfInterval(dateInterval);
+	const formatedDays = daysOfInterval
+		.filter(date => !isSaturday(date) && !isSunday(date))
+		.map(rawDate => ({
+			date: format(rawDate, 'yyyyMMdd'),
+			times: isFriday(rawDate) ? ['1145', '1430'] : ['1845', '2130'],
+		}));
+	
+	return formatedDays;
 }
 
 export async function startScheduler() {
