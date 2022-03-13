@@ -23,6 +23,16 @@
       ],
       "program": "${workspaceFolder}\\bin\\test-single-reservation.js",
       "console": "integratedTerminal"
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Test Scheduler",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}\\bin\\test-scheduler.js",
+      "console": "integratedTerminal"
     }
   ]
 }

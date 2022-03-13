@@ -24,8 +24,7 @@ export default {
 		'Referrer-Policy': 'strict-origin-when-cross-origin',
 	},
 	scheduler: {
-		priorities: [
-			
-		],
+		month: 11,
+		year: 2022,
 	},
 };

@@ -1,5 +1,15 @@
+import {  } from 'date-fns';
+import config from './config.js';
 
+export function validateDates() {
+	if (!config?.scheduler?.month || !config?.scheduler?.year) {
+		throw new Error('No month or year provided');
+	}
+}
 
+export async function startScheduler() {
+	console.log('here');
+}
 
 
 // Launching orders:

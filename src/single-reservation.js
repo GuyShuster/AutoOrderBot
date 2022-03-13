@@ -31,7 +31,7 @@ async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeop
 			throw new Error('Get available time api error: wrong response format from server (no availability_id)');
 		} else if (!responseData.areas) {
 			throw new Error('Get available time error: no available time was found');
-		} else if (responseData.areas.length && responseData.areas[0].id && responseData.areas[0].options.length && responseData.areas[0].options[0].time) {
+		} else if (responseData.areas[0]?.id  && responseData.areas[0]?.options[0]?.time) {
 			return { time: responseData.areas[0].options[0].time, availability_id: responseData.availability_id, area: responseData.areas[0].id };
 		} else {
 			throw new Error('Get available time api error: responseData.areas had an unexpected format');
