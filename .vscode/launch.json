@@ -31,7 +31,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}\\bin\\test-scheduler.js",
+      "program": "${workspaceFolder}\\bin\\test-order-scheduler.js",
       "console": "integratedTerminal"
     }
   ]

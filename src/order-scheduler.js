@@ -1,5 +1,12 @@
-import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isSameDay, isWednesday } from 'date-fns';
+import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday } from 'date-fns';
+import { FullyBookedError } from './single-reservation.js';
 import config from './config.js';
+
+function wrapLogger(logger) {
+	return {
+		log: logger,
+	};
+}
 
 export function getAvailabilityObjects() {
 	// Check if defined
@@ -14,6 +21,7 @@ export function getAvailabilityObjects() {
 		throw new Error(`Month ${monthIndex + 1} and year ${year} are invalid`);
 	}
 
+	// Create interval
 	const randomDateInMonth = new Date(year, monthIndex, monthIndex);
 	const dateInterval = {
 		start: startOfMonth(randomDateInMonth),
@@ -36,24 +44,63 @@ export function getAvailabilityObjects() {
 			formattedDate: format(rawDate, 'yyyyMMdd'),
 			times: isFriday(rawDate) ? ['1145', '1430'] : ['1845', '2130'],
 		}));
-	
+
 	return availabilityObjects;
 }
 
-function getAvailabilityObjectPriorityList(availabilityObjects) {
+export function getAvailabilityObjectPriorityLists(availabilityObjects) {
 	const wednesdays = availabilityObjects.filter(availabilityObject => isWednesday(availabilityObject.rawDate));
 	const thursdays = availabilityObjects.filter(availabilityObject => isThursday(availabilityObject.rawDate));
 	const fridays = availabilityObjects.filter(availabilityObject => isFriday(availabilityObject.rawDate));
-	const rest = availabilityObjects.filter(availabilityObject => 
+	const rest = availabilityObjects.filter(availabilityObject =>
 		!isWednesday(availabilityObject.rawDate) && !isThursday(availabilityObject.rawDate) && !isFriday(availabilityObject.rawDate));
-	
+
 	return [wednesdays, thursdays, fridays, rest];
 }
 
-export async function startScheduler() {
-	const availabilityObjects = getAvailabilityObjects();
-	const availabilityObjectPriorityList = getAvailabilityObjectPriorityList(availabilityObjects);
+async function placeOrder(order, availabilityObjectPriorityLists, logger) {
+	let fullyBookedDates = 0;
+	const fullyBookedDatesLimit = availabilityObjectPriorityLists.flatMap(availabilityObjectPriorityList => availabilityObjectPriorityList).length;
+
+	// Attempt all dates until fully booked
+	while (fullyBookedDates < fullyBookedDatesLimit) {
+		for (const availabilityObjectPriorityList of availabilityObjectPriorityLists) {
+			for (const availabilityObject of availabilityObjectPriorityList) {
+				try {
+					// TODO: order + return value
+				} catch (error) {
+					if (error instanceof FullyBookedError) {
+						fullyBookedDates += 1;
+					}
+					logger.log(error.message);
+				}
+			}
+		}
+	}
+
+	// If all dates are fully booked, throw an error to finish the program
+	throw new Error();
+}
+
+export async function startScheduler({ rawLogger = console.log } = {}) {
+	const logger = wrapLogger(rawLogger);
+	const availabilityObjects = getAvailabilityObjects(); // TODO: maybe generate one minute before for better timing
+	const availabilityObjectPriorityLists = getAvailabilityObjectPriorityLists(availabilityObjects);
+	const orders = config.orders;
+
+	logger.log('Started ordering!');
+
+	for (const order of orders) {
+		try {
+			const orderUrl = await placeOrder(order, availabilityObjectPriorityLists, logger);
+			logger.log(`${order.orderName} was succesfull!\nHere is the URL: ${orderUrl}\nExcecuting the next order...`);
+		} catch (error) {
+			logger.log('No seats left in the restaurant at all, bot shutting down...');
+			return;
+		}
+	}
 	
+	logger.log('All orders were successful!\nBot shutting down...');
 }
 
 

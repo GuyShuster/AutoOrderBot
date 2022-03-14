@@ -2,6 +2,7 @@ import config from './config.js';
 import axios from 'axios';
 import ReservationData from './reservation-data.js';
 
+export class FullyBookedError extends Error {}
 
 async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) {
 	const requestData = {
@@ -20,7 +21,7 @@ async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeop
 		if (!responseData.availability_id) {
 			throw new Error('Get available time api error: wrong response format from server (no availability_id)');
 		} else if (!responseData.areas) {
-			throw new Error('Get available time error: no available time was found');
+			throw new FullyBookedError('Get available time error: no available time was found');
 		} else if (responseData.areas[0]?.id  && responseData.areas[0]?.options[0]?.time) {
 			return { time: responseData.areas[0].options[0].time, availability_id: responseData.availability_id, area: responseData.areas[0].id };
 		} else {
