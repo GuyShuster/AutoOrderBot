@@ -1,7 +1,7 @@
-import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday } from 'date-fns';
+import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isSameDay, isWednesday } from 'date-fns';
 import config from './config.js';
 
-export function getDateRange() {
+export function getAvailabilityObjects() {
 	// Check if defined
 	if (!config?.scheduler?.month || !config?.scheduler?.year) {
 		throw new Error('No month or year provided');
@@ -27,19 +27,33 @@ export function getDateRange() {
 		throw new Error(`Some dates are not in within ${monthIndex + 1}/${year}`);
 	}
 
+	// Create date range
 	const daysOfInterval = eachDayOfInterval(dateInterval);
-	const formatedDays = daysOfInterval
+	const availabilityObjects = daysOfInterval
 		.filter(date => !isSaturday(date) && !isSunday(date))
 		.map(rawDate => ({
-			date: format(rawDate, 'yyyyMMdd'),
+			rawDate,
+			formattedDate: format(rawDate, 'yyyyMMdd'),
 			times: isFriday(rawDate) ? ['1145', '1430'] : ['1845', '2130'],
 		}));
 	
-	return formatedDays;
+	return availabilityObjects;
+}
+
+function getAvailabilityObjectPriorityList(availabilityObjects) {
+	const wednesdays = availabilityObjects.filter(availabilityObject => isWednesday(availabilityObject.rawDate));
+	const thursdays = availabilityObjects.filter(availabilityObject => isThursday(availabilityObject.rawDate));
+	const fridays = availabilityObjects.filter(availabilityObject => isFriday(availabilityObject.rawDate));
+	const rest = availabilityObjects.filter(availabilityObject => 
+		!isWednesday(availabilityObject.rawDate) && !isThursday(availabilityObject.rawDate) && !isFriday(availabilityObject.rawDate));
+	
+	return [wednesdays, thursdays, fridays, rest];
 }
 
 export async function startScheduler() {
-	console.log('here');
+	const availabilityObjects = getAvailabilityObjects();
+	const availabilityObjectPriorityList = getAvailabilityObjectPriorityList(availabilityObjects);
+	
 }
 
 
