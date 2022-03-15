@@ -1,11 +1,35 @@
 import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday } from 'date-fns';
-import { FullyBookedError } from './single-reservation.js';
+import { FullyBookedError, TimeoutError } from './single-reservation.js';
 import config from './config.js';
+
+
+// TODO: move to utils
+function describeDates(dates) {
+	const rawDate = dates[0].rawDate;
+	if (isWednesday(rawDate)) {
+		return 'wednesdays';
+	} else if (isThursday(rawDate)) {
+		return 'thursdays';
+	} else if (isFriday(rawDate)) {
+		return 'fridays';
+	} else {
+		return 'other dates';
+	}
+
+}
 
 function wrapLogger(logger) {
 	return {
 		log: logger,
 	};
+}
+
+function formatDateToReadable(date) {
+	return `${date.substring(6, 8)}/${date.substring(4, 6)}/${date.substring(0, 4)}`;
+}
+
+function formatTimeToReadable(time) {
+	return `${time.substring(0, 2)}:${time.substring(2, 4)}`;
 }
 
 export function getAvailabilityObjects() {
@@ -58,20 +82,75 @@ export function getAvailabilityObjectPriorityLists(availabilityObjects) {
 	return [wednesdays, thursdays, fridays, rest];
 }
 
+// ************************ MOCKS *****************************
+function randomIntFromInterval(min, max) {
+	return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+async function getAvailableTimeOnDateMock(requestedDate, requestedTime, amountOfPeople, timeout) {
+	const apiResponseTime = randomIntFromInterval(1000, 5000);
+	console.log(`Ordering at ${requestedDate}, ${requestedTime} for ${amountOfPeople} people, this will take ${apiResponseTime}, timeout is ${timeout}`);
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			reject(new TimeoutError(`Axios request timed out after ${timeout}ms`));
+			// resolve({
+			// 	date: requestedDate,
+			// 	time: '1200',
+			// 	availability_id: '6230e38a2aa9ab000f128c3f',
+			// 	area: 'מסעדה',
+			// });
+		}, apiResponseTime);
+	});
+}
+
+// async function makeReservationMock(order, { requestTimeout } = {}) {
+// 	return new Promise((resolve, reject) => {
+// 		setTimeout(() => {
+// 			resolve('This is a url');
+// 		}, 3000);
+// 	});
+// }
+
+// ************************ MOCKS *****************************
+
+function checkForAllAvailableTimes(availabilityObjectPriorityList, order, timeout) {
+	const promises = [];
+
+	for (const availabilityObject of availabilityObjectPriorityList) {
+		for (const time of availabilityObject.times) {
+			const promise = getAvailableTimeOnDateMock(availabilityObject.formattedDate, time, order.reservationData.amountOfPeople, timeout); // TODO: change to real
+			promises.push(promise);
+		}
+	}
+
+	return promises;
+}
+
 async function placeOrder(order, availabilityObjectPriorityLists, logger) {
 	let fullyBookedDates = 0;
+	let minTimeout = config.scheduler.minTimeoutMS;
 	const fullyBookedDatesLimit = availabilityObjectPriorityLists.flatMap(availabilityObjectPriorityList => availabilityObjectPriorityList).length;
 
 	// Attempt all dates until fully booked
 	while (fullyBookedDates < fullyBookedDatesLimit) {
 		for (const availabilityObjectPriorityList of availabilityObjectPriorityLists) {
-			for (const availabilityObject of availabilityObjectPriorityList) {
-				try {
-					// TODO: order + return value
-				} catch (error) {
-					if (error instanceof FullyBookedError) {
-						fullyBookedDates += 1;
-					}
+			const promises = checkForAllAvailableTimes(availabilityObjectPriorityList, order, minTimeout);
+
+			try {
+				const { date, time: chosenTime, ...additionalAvailabilityData } = await Promise.any(promises);
+				const readableDate = formatDateToReadable(date);
+				const readableTime = formatTimeToReadable(chosenTime);
+				logger.log(`Found an available spot at ${readableTime} on ${readableDate}!\nStarting order attempt...`);
+				// TODO: dont forget to return something here
+			} catch (error) {
+				const dateDescription = describeDates(availabilityObjectPriorityList);
+				if (error.errors.every(error => error instanceof FullyBookedError)) {
+					logger.log(`All ${dateDescription} are taken, moving on to the next priority...`);
+					fullyBookedDates += 1;
+				} else if (error.errors.every(error => error instanceof TimeoutError)) {
+					logger.log(`All ${dateDescription} requests timed out. Increasing minimal timeout...`);
+					minTimeout *= 2;
+				} else {
 					logger.log(error.message);
 				}
 			}
@@ -99,7 +178,7 @@ export async function startScheduler({ rawLogger = console.log } = {}) {
 			return;
 		}
 	}
-	
+
 	logger.log('All orders were successful!\nBot shutting down...');
 }
 
@@ -115,3 +194,4 @@ export async function startScheduler({ rawLogger = console.log } = {}) {
 // Check date validity with intervals 
 // If any of the config values don't pass the validity, throw error and dont launch bot at all.
 // When the bot is "released" and running on it's own we need everything to be perfect and automatic, so checking stuff in config before the cron job is launched is key!
+// TODO: the above + all todos

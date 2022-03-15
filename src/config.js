@@ -32,6 +32,7 @@ export default {
 	scheduler: {
 		month: MONTH,
 		year: YEAR,
+		minTimeoutMS: 10000, // 10 secs
 	},
 	orders: [
 		{

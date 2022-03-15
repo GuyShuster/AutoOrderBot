@@ -3,8 +3,9 @@ import axios from 'axios';
 import ReservationData from './reservation-data.js';
 
 export class FullyBookedError extends Error {}
+export class TimeoutError extends Error {}
 
-async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) {
+async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) { // TODO: make this one return a date as well
 	const requestData = {
 		page_id: config.order.pageId,
 		locale: config.order.locale,
@@ -28,6 +29,9 @@ async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeop
 			throw new Error('Get available time api error: responseData.areas had an unexpected format');
 		}
 	} catch (error) {
+		if (error.code === 'ECONNABORTED') {
+			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
+		}
 		throw new Error(`Get available time axios error: ${error.message}`);
 	}
 }
@@ -95,10 +99,6 @@ async function completeCheckout(checkoutId, phone, timeout) {
 }
 
 export default async function makeReservation(date, time, reservationData, { testing = false, requestTimeout = 0 } = {}) {
-	if (!(reservationData instanceof ReservationData)) {
-		throw new Error('The function must receive an reservation data instance');
-	}
-
 	const { time: chosenTime, ...additionalAvailabilityData } = await getAvailableTimeOnDate(date, time, reservationData.amountOfPeople, requestTimeout);
 	const checkoutId = await chooseAvailableTimeOnDate(date, chosenTime, reservationData.amountOfPeople, additionalAvailabilityData, requestTimeout);
 	await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone, requestTimeout);
