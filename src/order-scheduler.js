@@ -103,13 +103,13 @@ async function getAvailableTimeOnDateMock(requestedDate, requestedTime, amountOf
 	});
 }
 
-// async function makeReservationMock(order, { requestTimeout } = {}) {
-// 	return new Promise((resolve, reject) => {
-// 		setTimeout(() => {
-// 			resolve('This is a url');
-// 		}, 3000);
-// 	});
-// }
+async function makeReservationMock(reservationData, { requestTimeout } = {}) {
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			resolve('This is a url');
+		}, 3000);
+	});
+}
 
 // ************************ MOCKS *****************************
 
@@ -141,6 +141,13 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger) {
 				const readableDate = formatDateToReadable(date);
 				const readableTime = formatTimeToReadable(chosenTime);
 				logger.log(`Found an available spot at ${readableTime} on ${readableDate}!\nStarting order attempt...`);
+
+				try {
+					
+				} catch (error) {
+					
+				}
+
 				// TODO: dont forget to return something here
 			} catch (error) {
 				const dateDescription = describeDates(availabilityObjectPriorityList);

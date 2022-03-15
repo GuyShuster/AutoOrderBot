@@ -1,40 +1,8 @@
 import config from './config.js';
 import axios from 'axios';
-import ReservationData from './reservation-data.js';
 
 export class FullyBookedError extends Error {}
 export class TimeoutError extends Error {}
-
-async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) { // TODO: make this one return a date as well
-	const requestData = {
-		page_id: config.order.pageId,
-		locale: config.order.locale,
-		criteria: {
-			date: requestedDate,
-			time: requestedTime,
-			size: amountOfPeople,
-		},
-	};
-
-	try {
-		const { data: responseData } = await axios.post('https://ontopo.co.il/api/availability/searchAvailability', requestData, { headers: config.headers, timeout });
-
-		if (!responseData.availability_id) {
-			throw new Error('Get available time api error: wrong response format from server (no availability_id)');
-		} else if (!responseData.areas) {
-			throw new FullyBookedError('Get available time error: no available time was found');
-		} else if (responseData.areas[0]?.id  && responseData.areas[0]?.options[0]?.time) {
-			return { time: responseData.areas[0].options[0].time, availability_id: responseData.availability_id, area: responseData.areas[0].id };
-		} else {
-			throw new Error('Get available time api error: responseData.areas had an unexpected format');
-		}
-	} catch (error) {
-		if (error.code === 'ECONNABORTED') {
-			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
-		}
-		throw new Error(`Get available time axios error: ${error.message}`);
-	}
-}
 
 async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOfPeople, additionalAvailabilityData, timeout) {
 	const requestData = {
@@ -98,8 +66,38 @@ async function completeCheckout(checkoutId, phone, timeout) {
 	}
 }
 
-export default async function makeReservation(date, time, reservationData, { testing = false, requestTimeout = 0 } = {}) {
-	const { time: chosenTime, ...additionalAvailabilityData } = await getAvailableTimeOnDate(date, time, reservationData.amountOfPeople, requestTimeout);
+export async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) { // TODO: make this one return a date as well
+	const requestData = {
+		page_id: config.order.pageId,
+		locale: config.order.locale,
+		criteria: {
+			date: requestedDate,
+			time: requestedTime,
+			size: amountOfPeople,
+		},
+	};
+
+	try {
+		const { data: responseData } = await axios.post('https://ontopo.co.il/api/availability/searchAvailability', requestData, { headers: config.headers, timeout });
+
+		if (!responseData.availability_id) {
+			throw new Error('Get available time api error: wrong response format from server (no availability_id)');
+		} else if (!responseData.areas) {
+			throw new FullyBookedError('Get available time error: no available time was found');
+		} else if (responseData.areas[0]?.id  && responseData.areas[0]?.options[0]?.time) {
+			return { time: responseData.areas[0].options[0].time, availability_id: responseData.availability_id, area: responseData.areas[0].id, date: requestedDate };
+		} else {
+			throw new Error('Get available time api error: responseData.areas had an unexpected format');
+		}
+	} catch (error) {
+		if (error.code === 'ECONNABORTED') {
+			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
+		}
+		throw new Error(`Get available time axios error: ${error.message}`);
+	}
+}
+
+export async function finalizeReservation(date, chosenTime, reservationData, additionalAvailabilityData, { testing = false, requestTimeout = 0 } = {}) {
 	const checkoutId = await chooseAvailableTimeOnDate(date, chosenTime, reservationData.amountOfPeople, additionalAvailabilityData, requestTimeout);
 	await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone, requestTimeout);
 
