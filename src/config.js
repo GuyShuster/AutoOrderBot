@@ -33,11 +33,12 @@ export default {
 		month: MONTH,
 		year: YEAR,
 		minTimeoutMS: 10000, // 10 secs
+		maxFinalizeRetries: 3,
 	},
 	orders: [
 		{
 			orderName: 'May and Guy\'s order',
-			weekdaysToSkip: [
+			weekdaysToSkip: [ // TODO: add support
 				new Date(YEAR, MONTH - 1, 3),
 			],
 			reservationData: new ReservationData(
@@ -53,7 +54,7 @@ export default {
 			weekdaysToSkip: [
 				new Date(YEAR, MONTH - 1, 10),
 			],
-			reservationData: new ReservationData( // TODO: update!!!
+			reservationData: new ReservationData( // TODO: update with actual info
 				'2',
 				'מאי',
 				'סבן',

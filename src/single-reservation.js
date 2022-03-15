@@ -4,6 +4,8 @@ import axios from 'axios';
 export class FullyBookedError extends Error {}
 export class TimeoutError extends Error {}
 
+// TODO: Add timeout errors to all
+
 async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOfPeople, additionalAvailabilityData, timeout) {
 	const requestData = {
 		page_id: config.order.pageId,

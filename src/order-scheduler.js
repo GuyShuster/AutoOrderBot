@@ -92,21 +92,22 @@ async function getAvailableTimeOnDateMock(requestedDate, requestedTime, amountOf
 	console.log(`Ordering at ${requestedDate}, ${requestedTime} for ${amountOfPeople} people, this will take ${apiResponseTime}, timeout is ${timeout}`);
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
-			reject(new TimeoutError(`Axios request timed out after ${timeout}ms`));
-			// resolve({
-			// 	date: requestedDate,
-			// 	time: '1200',
-			// 	availability_id: '6230e38a2aa9ab000f128c3f',
-			// 	area: 'מסעדה',
-			// });
+			// reject(new TimeoutError(`Axios request timed out after ${timeout}ms`));
+			resolve({
+				date: requestedDate,
+				time: requestedTime,
+				availability_id: '6230e38a2aa9ab000f128c3f',
+				area: 'מסעדה',
+			});
 		}, apiResponseTime);
 	});
 }
 
-async function makeReservationMock(reservationData, { requestTimeout } = {}) {
+async function finalizeReservationMock(date, chosenTime, reservationData, additionalAvailabilityData, { testing = false, requestTimeout = 0 } = {}) {
+	console.log(`Finalizing reservation`);
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
-			resolve('This is a url');
+			reject(new TimeoutError(`Axios request timed out after ${requestTimeout}ms`));
 		}, 3000);
 	});
 }
@@ -142,13 +143,20 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger) {
 				const readableTime = formatTimeToReadable(chosenTime);
 				logger.log(`Found an available spot at ${readableTime} on ${readableDate}!\nStarting order attempt...`);
 
-				try {
-					
-				} catch (error) {
-					
+				for (let i = 0; i < config.scheduler.maxFinalizeRetries; i++) {
+					try {
+						// TODO: change to actual func
+						const reservationUrl = await finalizeReservationMock(date, chosenTime, order, additionalAvailabilityData, { requestTimeout: minTimeout });
+						return reservationUrl;
+					} catch (error) { // TODO: add timeout handling
+						if (error instanceof TimeoutError) {
+							minTimeout *= 2;
+							logger.log('Finalization attempt timed out. Increasing minimal timeout...');
+						} else {
+							logger.log(`Finalization attempt failed: ${error.message}`);
+						}
+					}
 				}
-
-				// TODO: dont forget to return something here
 			} catch (error) {
 				const dateDescription = describeDates(availabilityObjectPriorityList);
 				if (error.errors.every(error => error instanceof FullyBookedError)) {
@@ -158,7 +166,7 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger) {
 					logger.log(`All ${dateDescription} requests timed out. Increasing minimal timeout...`);
 					minTimeout *= 2;
 				} else {
-					logger.log(error.message);
+					logger.log('All the requests failed because of something other than a timeout or full booking.\nThe bot might have gotten blocked.'); // TODO: TEST this case
 				}
 			}
 		}
@@ -178,6 +186,7 @@ export async function startScheduler({ rawLogger = console.log } = {}) {
 
 	for (const order of orders) {
 		try {
+			logger.log(`Executing ${order.orderName}`);
 			const orderUrl = await placeOrder(order, availabilityObjectPriorityLists, logger);
 			logger.log(`${order.orderName} was succesfull!\nHere is the URL: ${orderUrl}\nExcecuting the next order...`);
 		} catch (error) {
