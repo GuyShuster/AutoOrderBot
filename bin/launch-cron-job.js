@@ -1,9 +1,10 @@
 import cron from 'cron';
 import TelegramBotWrapper from '../src/telegram-bot.js';
 import config from '../src/config.js';
+import { getAvailabilityObjects, startScheduler } from '../src/order-scheduler.js';
 
 async function main() {
-	telegramBotWrapper.sendMessage('Hey, from crontab!');
+	await startScheduler({ rawLogger: telegramBotWrapper.sendMessage, testing: false });
 }
 
 function sendAlert(minutesToGo) {
@@ -21,6 +22,11 @@ function normalizeAlertTime(minutesBack) {
 function minutesAsString(minutes) {
 	return minutes < 9 ? `0${minutes}` : `${minutes}`;
 }
+
+// Check dates and config and throw error if wrong
+console.log('Testing config...');
+await getAvailabilityObjects();
+console.log('Test passed! Ready to run');
 
 // Init telegram channel
 const telegramBotWrapper = new TelegramBotWrapper();

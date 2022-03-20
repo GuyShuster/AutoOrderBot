@@ -43,7 +43,7 @@ export function getAvailabilityObjects() {
 	return availabilityObjects;
 }
 
-export function getAvailabilityObjectPriorityLists(availabilityObjects) {
+function getAvailabilityObjectPriorityLists(availabilityObjects) {
 	const wednesdays = availabilityObjects.filter(availabilityObject => isWednesday(availabilityObject.rawDate));
 	const thursdays = availabilityObjects.filter(availabilityObject => isThursday(availabilityObject.rawDate));
 	const fridays = availabilityObjects.filter(availabilityObject => isFriday(availabilityObject.rawDate));
@@ -147,13 +147,3 @@ export async function startScheduler({ rawLogger = console.log, testing = false 
 
 	logger.log('All orders were successful!\nBot shutting down...');
 }
-
-
-// Launching orders:
-// add telegram logs
-
-// Scheduling:
-// Check date validity with intervals on launch
-// If any of the config values don't pass the validity, throw error and dont launch bot at all.
-// When the bot is "released" and running on it's own we need everything to be perfect and automatic, so checking stuff in config before the cron job is launched is key!
-// TODO: the above + all todos
