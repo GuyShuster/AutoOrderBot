@@ -85,7 +85,7 @@ export async function getAvailableTimeOnDate(requestedDate, requestedTime, amoun
 			size: amountOfPeople,
 		},
 	};
-
+	
 	try {
 		const { data: responseData } = await axios.post('https://ontopo.co.il/api/availability/searchAvailability', requestData, { headers: config.headers, timeout });
 

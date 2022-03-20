@@ -1,18 +1,18 @@
 
 import ReservationData from './reservation-data.js';
 
-const MONTH = 11;
+const MONTH = 6; // TODO: change to actual...
 const YEAR = 2022;
 
 export default {
 	cronJob: {
-		startTimeHours: 12,
+		startTimeHours: 12, // TODO: change to actual...
 		startTimeMinutes: 0,
 		firstAlertMinutesBack: 5,
 		secondAlertMinutesBack: 1,
 	},
 	order: {
-		pageId: 'babayaga', // TODO: test on different restaurants...
+		pageId: 'mashya', // TODO: change to actual...
 		locale: 'he',
 		regionCode: 'il',
 		rememberMe: false,
@@ -32,14 +32,15 @@ export default {
 	scheduler: {
 		month: MONTH,
 		year: YEAR,
-		minTimeoutMS: 10000, // 10 secs
+		minTimeoutMS: 1000 * 10, // 10 secs
+		maxTimeoutMS: 1000 * 40, // 40 secs
 		maxFinalizeRetries: 3,
 	},
 	orders: [
 		{
 			orderName: 'May and Guy\'s order',
-			weekdaysToSkip: [ // TODO: add support
-				new Date(YEAR, MONTH - 1, 3),
+			weekdaysToSkip: [
+				// new Date(YEAR, MONTH - 1, 2),
 			],
 			reservationData: new ReservationData(
 				'2',
@@ -52,14 +53,14 @@ export default {
 		{
 			orderName: 'Eyal and Gali\'s order',
 			weekdaysToSkip: [
-				new Date(YEAR, MONTH - 1, 10),
+				// new Date(YEAR, MONTH - 1, 10), // TODO: decide if needed
 			],
 			reservationData: new ReservationData( // TODO: update with actual info
 				'2',
 				'מאי',
 				'סבן',
-				'guygosha@gmail.com',
-				'0549439700',
+				'maysaban98@gmail.com',
+				'0545620381',
 			),
 		},
 	],

@@ -1,4 +1,4 @@
-import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday } from 'date-fns';
+import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday, isSameDay } from 'date-fns';
 import { FullyBookedError, TimeoutError, getAvailableTimeOnDate, finalizeReservation } from './single-reservation.js';
 import { describeDates, wrapLogger, formatDateToReadable, formatTimeToReadable } from './utils.js';
 import config from './config.js';
@@ -57,8 +57,12 @@ function checkForAllAvailableTimes(availabilityObjectPriorityList, order, timeou
 	const promises = [];
 
 	for (const availabilityObject of availabilityObjectPriorityList) {
+		if (order.weekdaysToSkip.some(day => isSameDay(day, availabilityObject.rawDate))) {
+			continue;
+		}
+
 		for (const time of availabilityObject.times) {
-			const promise = getAvailableTimeOnDate(availabilityObject.formattedDate, time, order.reservationData.amountOfPeople, timeout); // TODO: change to real
+			const promise = getAvailableTimeOnDate(availabilityObject.formattedDate, time, order.reservationData.amountOfPeople, timeout);
 			promises.push(promise);
 		}
 	}
@@ -86,11 +90,12 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger, testin
 				for (let i = 0; i < config.scheduler.maxFinalizeRetries; i++) {
 					try {
 						const reservationUrl = await finalizeReservation(date, chosenTime, order.reservationData, additionalAvailabilityData, { requestTimeout: minFinalizationTimeout, testing });
-						return reservationUrl;
+						const splitDate = readableDate.split('/');
+						return { reservationUrl, rawDate: new Date(splitDate[2], splitDate[1] - 1, splitDate[0]) };
 					} catch (error) {
 						if (error instanceof TimeoutError) {
-							minFinalizationTimeout *= 2;
-							logger.log('Finalization attempt timed out. Increasing minimal timeout...');
+							minFinalizationTimeout = Math.min(minFinalizationTimeout * 2, config.scheduler.maxTimeoutMS);
+							logger.log(`Finalization attempt timed out. Increasing minimal timeout to ${minFinalizationTimeout / 1000} seconds...`);
 						} else {
 							logger.log(`Finalization attempt failed: ${error.message}`);
 						}
@@ -100,14 +105,13 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger, testin
 				const dateDescription = describeDates(availabilityObjectPriorityList);
 				if (error.errors.every(err => err instanceof FullyBookedError)) {
 					logger.log(`All ${dateDescription} are taken, moving on to the next priority...`);
-					fullyBookedDates += 1;
+					fullyBookedDates += error.errors.length;
 				} else if (error.errors.every(err => err instanceof TimeoutError)) {
-					logger.log(`All ${dateDescription} requests timed out. Increasing minimal timeout...`);
-					minTimeSearchTimeout *= 2;
+					minTimeSearchTimeout = Math.min(minTimeSearchTimeout * 2, config.scheduler.maxTimeoutMS);
+					logger.log(`All ${dateDescription} requests timed out. Increasing minimal timeout to ${minTimeSearchTimeout / 1000} seconds...`);
 				} else {
 					logger.log('All the requests failed because of something other than a timeout or a full booking.\nThe bot might have gotten blocked.\nAborting order...');
-					error.errors.forEach(err => console.log(err.message));
-					return;
+					error.errors.forEach(err => console.log(err.message)); // Console on purpose, for post mortem
 				}
 			}
 		}
@@ -119,17 +123,22 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger, testin
 
 export async function startScheduler({ rawLogger = console.log, testing = false } = {}) {
 	const logger = wrapLogger(rawLogger);
-	const availabilityObjects = getAvailabilityObjects(); // TODO: maybe generate one minute before for better timing
+	const availabilityObjects = getAvailabilityObjects();
 	const availabilityObjectPriorityLists = getAvailabilityObjectPriorityLists(availabilityObjects);
 	const orders = config.orders;
 
 	logger.log('Started ordering!');
 
-	for (const order of orders) {
+	for (const [orderIndex, order] of orders.entries()) {
 		try {
 			logger.log(`Executing ${order.orderName}`);
-			const orderUrl = await placeOrder(order, availabilityObjectPriorityLists, logger, testing);
-			logger.log(`${order.orderName} was succesfull!\nHere is the URL: ${orderUrl}\nExcecuting the next order...`);
+			
+			const { reservationUrl, rawDate } = await placeOrder(order, availabilityObjectPriorityLists, logger, testing);
+			if (orderIndex + 1 < orders.length) {
+				config.orders[orderIndex + 1].weekdaysToSkip.push(rawDate);
+			}
+
+			logger.log(`${order.orderName} was succesfull!\nHere is the URL: ${reservationUrl}`);
 		} catch (error) {
 			logger.log('No seats left in the restaurant at all, bot shutting down...');
 			return;
@@ -142,13 +151,9 @@ export async function startScheduler({ rawLogger = console.log, testing = false 
 
 // Launching orders:
 // add telegram logs
-// use Promise.race for single reservations: Launch them all, the one that gets back first wins
-// increase request timeouts if a timeout error is received
 
 // Scheduling:
-// Use date-fns
-// Make date priorities for each order, and add specific times to these dates because ontopo only answers to times when the restaurant is working
-// Check date validity with intervals 
+// Check date validity with intervals on launch
 // If any of the config values don't pass the validity, throw error and dont launch bot at all.
 // When the bot is "released" and running on it's own we need everything to be perfect and automatic, so checking stuff in config before the cron job is launched is key!
 // TODO: the above + all todos
