@@ -1,36 +1,7 @@
 import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday } from 'date-fns';
-import { FullyBookedError, TimeoutError } from './single-reservation.js';
+import { FullyBookedError, TimeoutError, getAvailableTimeOnDate, finalizeReservation } from './single-reservation.js';
+import { describeDates, wrapLogger, formatDateToReadable, formatTimeToReadable } from './utils.js';
 import config from './config.js';
-
-
-// TODO: move to utils
-function describeDates(dates) {
-	const rawDate = dates[0].rawDate;
-	if (isWednesday(rawDate)) {
-		return 'wednesdays';
-	} else if (isThursday(rawDate)) {
-		return 'thursdays';
-	} else if (isFriday(rawDate)) {
-		return 'fridays';
-	} else {
-		return 'other dates';
-	}
-
-}
-
-function wrapLogger(logger) {
-	return {
-		log: logger,
-	};
-}
-
-function formatDateToReadable(date) {
-	return `${date.substring(6, 8)}/${date.substring(4, 6)}/${date.substring(0, 4)}`;
-}
-
-function formatTimeToReadable(time) {
-	return `${time.substring(0, 2)}:${time.substring(2, 4)}`;
-}
 
 export function getAvailabilityObjects() {
 	// Check if defined
@@ -82,44 +53,12 @@ export function getAvailabilityObjectPriorityLists(availabilityObjects) {
 	return [wednesdays, thursdays, fridays, rest];
 }
 
-// ************************ MOCKS *****************************
-function randomIntFromInterval(min, max) {
-	return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-async function getAvailableTimeOnDateMock(requestedDate, requestedTime, amountOfPeople, timeout) {
-	const apiResponseTime = randomIntFromInterval(1000, 5000);
-	console.log(`Ordering at ${requestedDate}, ${requestedTime} for ${amountOfPeople} people, this will take ${apiResponseTime}, timeout is ${timeout}`);
-	return new Promise((resolve, reject) => {
-		setTimeout(() => {
-			// reject(new TimeoutError(`Axios request timed out after ${timeout}ms`));
-			resolve({
-				date: requestedDate,
-				time: requestedTime,
-				availability_id: '6230e38a2aa9ab000f128c3f',
-				area: 'מסעדה',
-			});
-		}, apiResponseTime);
-	});
-}
-
-async function finalizeReservationMock(date, chosenTime, reservationData, additionalAvailabilityData, { testing = false, requestTimeout = 0 } = {}) {
-	console.log(`Finalizing reservation`);
-	return new Promise((resolve, reject) => {
-		setTimeout(() => {
-			reject(new TimeoutError(`Axios request timed out after ${requestTimeout}ms`));
-		}, 3000);
-	});
-}
-
-// ************************ MOCKS *****************************
-
 function checkForAllAvailableTimes(availabilityObjectPriorityList, order, timeout) {
 	const promises = [];
 
 	for (const availabilityObject of availabilityObjectPriorityList) {
 		for (const time of availabilityObject.times) {
-			const promise = getAvailableTimeOnDateMock(availabilityObject.formattedDate, time, order.reservationData.amountOfPeople, timeout); // TODO: change to real
+			const promise = getAvailableTimeOnDate(availabilityObject.formattedDate, time, order.reservationData.amountOfPeople, timeout); // TODO: change to real
 			promises.push(promise);
 		}
 	}
@@ -127,15 +66,16 @@ function checkForAllAvailableTimes(availabilityObjectPriorityList, order, timeou
 	return promises;
 }
 
-async function placeOrder(order, availabilityObjectPriorityLists, logger) {
+async function placeOrder(order, availabilityObjectPriorityLists, logger, testing) {
 	let fullyBookedDates = 0;
-	let minTimeout = config.scheduler.minTimeoutMS;
+	let minTimeSearchTimeout = config.scheduler.minTimeoutMS;
+	let minFinalizationTimeout = config.scheduler.minTimeoutMS;
 	const fullyBookedDatesLimit = availabilityObjectPriorityLists.flatMap(availabilityObjectPriorityList => availabilityObjectPriorityList).length;
 
 	// Attempt all dates until fully booked
 	while (fullyBookedDates < fullyBookedDatesLimit) {
 		for (const availabilityObjectPriorityList of availabilityObjectPriorityLists) {
-			const promises = checkForAllAvailableTimes(availabilityObjectPriorityList, order, minTimeout);
+			const promises = checkForAllAvailableTimes(availabilityObjectPriorityList, order, minTimeSearchTimeout);
 
 			try {
 				const { date, time: chosenTime, ...additionalAvailabilityData } = await Promise.any(promises);
@@ -145,12 +85,11 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger) {
 
 				for (let i = 0; i < config.scheduler.maxFinalizeRetries; i++) {
 					try {
-						// TODO: change to actual func
-						const reservationUrl = await finalizeReservationMock(date, chosenTime, order, additionalAvailabilityData, { requestTimeout: minTimeout });
+						const reservationUrl = await finalizeReservation(date, chosenTime, order.reservationData, additionalAvailabilityData, { requestTimeout: minFinalizationTimeout, testing });
 						return reservationUrl;
-					} catch (error) { // TODO: add timeout handling
+					} catch (error) {
 						if (error instanceof TimeoutError) {
-							minTimeout *= 2;
+							minFinalizationTimeout *= 2;
 							logger.log('Finalization attempt timed out. Increasing minimal timeout...');
 						} else {
 							logger.log(`Finalization attempt failed: ${error.message}`);
@@ -159,14 +98,16 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger) {
 				}
 			} catch (error) {
 				const dateDescription = describeDates(availabilityObjectPriorityList);
-				if (error.errors.every(error => error instanceof FullyBookedError)) {
+				if (error.errors.every(err => err instanceof FullyBookedError)) {
 					logger.log(`All ${dateDescription} are taken, moving on to the next priority...`);
 					fullyBookedDates += 1;
-				} else if (error.errors.every(error => error instanceof TimeoutError)) {
+				} else if (error.errors.every(err => err instanceof TimeoutError)) {
 					logger.log(`All ${dateDescription} requests timed out. Increasing minimal timeout...`);
-					minTimeout *= 2;
+					minTimeSearchTimeout *= 2;
 				} else {
-					logger.log('All the requests failed because of something other than a timeout or full booking.\nThe bot might have gotten blocked.'); // TODO: TEST this case
+					logger.log('All the requests failed because of something other than a timeout or a full booking.\nThe bot might have gotten blocked.\nAborting order...');
+					error.errors.forEach(err => console.log(err.message));
+					return;
 				}
 			}
 		}
@@ -176,7 +117,7 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger) {
 	throw new Error();
 }
 
-export async function startScheduler({ rawLogger = console.log } = {}) {
+export async function startScheduler({ rawLogger = console.log, testing = false } = {}) {
 	const logger = wrapLogger(rawLogger);
 	const availabilityObjects = getAvailabilityObjects(); // TODO: maybe generate one minute before for better timing
 	const availabilityObjectPriorityLists = getAvailabilityObjectPriorityLists(availabilityObjects);
@@ -187,7 +128,7 @@ export async function startScheduler({ rawLogger = console.log } = {}) {
 	for (const order of orders) {
 		try {
 			logger.log(`Executing ${order.orderName}`);
-			const orderUrl = await placeOrder(order, availabilityObjectPriorityLists, logger);
+			const orderUrl = await placeOrder(order, availabilityObjectPriorityLists, logger, testing);
 			logger.log(`${order.orderName} was succesfull!\nHere is the URL: ${orderUrl}\nExcecuting the next order...`);
 		} catch (error) {
 			logger.log('No seats left in the restaurant at all, bot shutting down...');

@@ -4,8 +4,6 @@ import axios from 'axios';
 export class FullyBookedError extends Error {}
 export class TimeoutError extends Error {}
 
-// TODO: Add timeout errors to all
-
 async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOfPeople, additionalAvailabilityData, timeout) {
 	const requestData = {
 		page_id: config.order.pageId,
@@ -27,6 +25,9 @@ async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOfPeople,
 
 		return responseData.checkout_id;
 	} catch (error) {
+		if (error.code === 'ECONNABORTED') {
+			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
+		}
 		throw new Error(`Choose available time axios error: ${error.message}`);
 	}
 }
@@ -45,6 +46,9 @@ async function fillContactDetails(checkoutId, firstName, lastName, email, phone,
 	try {
 		await axios.post('https://ontopo.co.il/api/checkout/checkoutContact', requestData, { headers: config.headers, timeout });
 	} catch (error) {
+		if (error.code === 'ECONNABORTED') {
+			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
+		}
 		throw new Error(`Fill contact details axios error: ${error.message}`);
 	}
 }
@@ -64,11 +68,14 @@ async function completeCheckout(checkoutId, phone, timeout) {
 			throw new Error('Checkout completion error: no reservation url was returned');
 		}
 	} catch (error) {
+		if (error.code === 'ECONNABORTED') {
+			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
+		}
 		throw new Error(`Checkout completion axios error: ${error.message}`);
 	}
 }
 
-export async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) { // TODO: make this one return a date as well
+export async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) {
 	const requestData = {
 		page_id: config.order.pageId,
 		locale: config.order.locale,
