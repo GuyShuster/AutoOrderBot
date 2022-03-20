@@ -110,7 +110,7 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger, testin
 					minTimeSearchTimeout = Math.min(minTimeSearchTimeout * 2, config.scheduler.maxTimeoutMS);
 					logger.log(`All ${dateDescription} requests timed out. Increasing minimal timeout to ${minTimeSearchTimeout / 1000} seconds...`);
 				} else {
-					logger.log('All the requests failed because of something other than a timeout or a full booking.\nThe bot might have gotten blocked.\nAborting order...');
+					logger.log('All the requests failed because of something other than a timeout or a full booking. The bot might have gotten blocked...\nAborting order...');
 					error.errors.forEach(err => console.log(err.message)); // Console on purpose, for post mortem
 				}
 			}
