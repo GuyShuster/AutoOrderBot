@@ -33,4 +33,8 @@ class TelegramBotWrapper {
 	}
 }
 
-export default TelegramBotWrapper;
+const telegramBotWrapper = new TelegramBotWrapper();
+telegramBotWrapper.init();
+console.log('Started telegram bot');
+
+export default telegramBotWrapper;

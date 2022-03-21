@@ -1,7 +1,18 @@
 import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday, isSameDay } from 'date-fns';
 import { FullyBookedError, TimeoutError, getAvailableTimeOnDate, finalizeReservation } from './single-reservation.js';
-import { describeDates, wrapLogger, formatDateToReadable, formatTimeToReadable } from './utils.js';
+import { describeDates, formatDateToReadable, formatTimeToReadable } from './utils.js';
 import config from './config.js';
+import telegramBotWrapper from './telegram-bot.js';
+
+function log(message) {
+	console.log(message);
+
+	try {
+		telegramBotWrapper.sendMessage(message);
+	} catch (error) {
+		// Best effort, do nothing
+	}
+}
 
 export function getAvailabilityObjects() {
 	// Check if defined
@@ -70,7 +81,7 @@ function checkForAllAvailableTimes(availabilityObjectPriorityList, order, timeou
 	return promises;
 }
 
-async function placeOrder(order, availabilityObjectPriorityLists, logger, testing) {
+async function placeOrder(order, availabilityObjectPriorityLists, testing) {
 	let fullyBookedDates = 0;
 	let minTimeSearchTimeout = config.scheduler.minTimeoutMS;
 	let minFinalizationTimeout = config.scheduler.minTimeoutMS;
@@ -85,7 +96,7 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger, testin
 				const { date, time: chosenTime, ...additionalAvailabilityData } = await Promise.any(promises);
 				const readableDate = formatDateToReadable(date);
 				const readableTime = formatTimeToReadable(chosenTime);
-				logger.log(`Found an available spot at ${readableTime} on ${readableDate}!\nStarting order attempt...`);
+				log(`Found an available spot at ${readableTime} on ${readableDate}!\nStarting order attempt...`);
 
 				for (let i = 0; i < config.scheduler.maxFinalizeRetries; i++) {
 					try {
@@ -95,22 +106,22 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger, testin
 					} catch (error) {
 						if (error instanceof TimeoutError) {
 							minFinalizationTimeout = Math.min(minFinalizationTimeout * 2, config.scheduler.maxTimeoutMS);
-							logger.log(`Finalization attempt timed out. Increasing minimal timeout to ${minFinalizationTimeout / 1000} seconds...`);
+							log(`Finalization attempt timed out. Increasing minimal timeout to ${minFinalizationTimeout / 1000} seconds...`);
 						} else {
-							logger.log(`Finalization attempt failed: ${error.message}`);
+							log(`Finalization attempt failed: ${error.message}`);
 						}
 					}
 				}
 			} catch (error) {
 				const dateDescription = describeDates(availabilityObjectPriorityList);
 				if (error.errors.every(err => err instanceof FullyBookedError)) {
-					logger.log(`All ${dateDescription} are taken, moving on to the next priority...`);
+					log(`All ${dateDescription} are taken, moving on to the next priority...`);
 					fullyBookedDates += error.errors.length;
 				} else if (error.errors.every(err => err instanceof TimeoutError)) {
 					minTimeSearchTimeout = Math.min(minTimeSearchTimeout * 2, config.scheduler.maxTimeoutMS);
-					logger.log(`All ${dateDescription} requests timed out. Increasing minimal timeout to ${minTimeSearchTimeout / 1000} seconds...`);
+					log(`All ${dateDescription} requests timed out. Increasing minimal timeout to ${minTimeSearchTimeout / 1000} seconds...`);
 				} else {
-					logger.log('All the requests failed because of something other than a timeout or a full booking. The bot might have gotten blocked...\nAborting order...');
+					log('All the requests failed because of something other than a timeout or a full booking. The bot might have gotten blocked...\nAborting order...');
 					error.errors.forEach(err => console.log(err.message)); // Console on purpose, for post mortem
 				}
 			}
@@ -121,29 +132,28 @@ async function placeOrder(order, availabilityObjectPriorityLists, logger, testin
 	throw new Error();
 }
 
-export async function startScheduler({ rawLogger = console.log, testing = false } = {}) {
-	const logger = wrapLogger(rawLogger);
+export async function startScheduler({ testing = false } = {}) {
 	const availabilityObjects = getAvailabilityObjects();
 	const availabilityObjectPriorityLists = getAvailabilityObjectPriorityLists(availabilityObjects);
 	const orders = config.orders;
 
-	logger.log('Started ordering!');
+	log('Started ordering!');
 
 	for (const [orderIndex, order] of orders.entries()) {
 		try {
-			logger.log(`Executing ${order.orderName}`);
+			log(`Executing ${order.orderName}`);
 			
-			const { reservationUrl, rawDate } = await placeOrder(order, availabilityObjectPriorityLists, logger, testing);
+			const { reservationUrl, rawDate } = await placeOrder(order, availabilityObjectPriorityLists, testing);
 			if (orderIndex + 1 < orders.length) {
 				config.orders[orderIndex + 1].weekdaysToSkip.push(rawDate);
 			}
 
-			logger.log(`${order.orderName} was succesfull!\nHere is the URL: ${reservationUrl}`);
+			log(`${order.orderName} was succesfull!\nHere is the URL: ${reservationUrl}`);
 		} catch (error) {
-			logger.log('No seats left in the restaurant at all, bot shutting down...');
+			log('No seats left in the restaurant at all, bot shutting down...');
 			return;
 		}
 	}
 
-	logger.log('All orders were successful!\nBot shutting down...');
+	log('All orders were successful!\nBot shutting down...');
 }
