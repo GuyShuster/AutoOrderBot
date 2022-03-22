@@ -78,7 +78,7 @@ async function completeCheckout(checkoutId, phone, timeout) {
 function chooseTime(responseData) {
 	for (const area of responseData.areas) {
 		if (area.options) {
-			const chosenOption = area.options.find(option => option.method === 'seat');
+			const chosenOption = area.options.find(option => option.method === 'seat' || option.text === 'אישור מיידי');
 			if (chosenOption && chosenOption.time && area.id) {
 				return {
 					time: chosenOption.time,
