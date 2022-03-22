@@ -75,6 +75,23 @@ async function completeCheckout(checkoutId, phone, timeout) {
 	}
 }
 
+function chooseTime(responseData) {
+	for (const area of responseData.areas) {
+		if (area.options) {
+			const chosenOption = area.options.find(option => option.method === 'seat');
+			if (chosenOption && chosenOption.time && area.id) {
+				return {
+					time: chosenOption.time,
+					availability_id: responseData.availability_id,
+					area: area.id,
+				};
+			}
+		}
+	}
+	
+	throw new FullyBookedError('No imediate availability seats');
+}
+
 export async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) {
 	const requestData = {
 		page_id: config.order.pageId,
@@ -94,7 +111,8 @@ export async function getAvailableTimeOnDate(requestedDate, requestedTime, amoun
 		} else if (!responseData.areas) {
 			throw new FullyBookedError('Get available time error: no available time was found');
 		} else if (responseData.areas[0]?.id  && responseData.areas[0]?.options[0]?.time) {
-			return { time: responseData.areas[0].options[0].time, availability_id: responseData.availability_id, area: responseData.areas[0].id, date: requestedDate };
+			const chosenTimeObject = chooseTime(responseData);
+			return { ...chosenTimeObject, date: requestedDate };
 		} else {
 			throw new Error('Get available time api error: responseData.areas had an unexpected format');
 		}
