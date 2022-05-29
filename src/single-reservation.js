@@ -129,6 +129,9 @@ export async function finalizeReservation(date, chosenTime, reservationData, add
 	// TODO: The checkout ID must be returned and sent to the the telegram bot as https://ontopo.co.il/checkout/<CHECKOUT_ID>
 	// TODO: Filling the credit card form must be supported
 	// TODO: חדר פרטי לילינבלום 41
+	// TODO: https://ontopo.co.il/komarovskysummer 
+	// TODO: https://ontopo.co.il/makura
+	// TODO: https://ontopo.co.il/netofawinery
 	await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone, requestTimeout);
 
 	if (testing) {
