@@ -1,0 +1,31 @@
+{
+    "checkout_id": "xwa3ugwlli",
+    "selected_package": {
+        "note": {
+            "notices": [],
+            "noteComment": "",
+            "nameComment": ""
+        },
+        "products": [
+            {
+                "parentIndex": "1",
+                "id": "CwgU_wLdK",
+                "value": 12,
+                "extras": [],
+                "note": {
+                    "notices": [],
+                    "noteComment": "",
+                    "nameComment": ""
+                },
+                "notes": [],
+                "includeLocked": null
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ]
+    }
+}

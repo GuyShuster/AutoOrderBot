@@ -126,6 +126,9 @@ export async function getAvailableTimeOnDate(requestedDate, requestedTime, amoun
 
 export async function finalizeReservation(date, chosenTime, reservationData, additionalAvailabilityData, { testing = false, requestTimeout = 0 } = {}) {
 	const checkoutId = await chooseAvailableTimeOnDate(date, chosenTime, reservationData.amountOfPeople, additionalAvailabilityData, requestTimeout);
+	// TODO: The checkout ID must be returned and sent to the the telegram bot as https://ontopo.co.il/checkout/<CHECKOUT_ID>
+	// TODO: Filling the credit card form must be supported
+	// TODO: חדר פרטי לילינבלום 41
 	await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone, requestTimeout);
 
 	if (testing) {
