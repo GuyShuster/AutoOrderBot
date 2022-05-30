@@ -125,13 +125,19 @@ export async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOf
 }
 
 export async function finalizeReservation(checkoutId, reservationData, { testing = false, requestTimeout = 0 } = {}) {
+	// TODO: Hamburger icon (choose menu)
+	// Person icon
 	await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone, requestTimeout);
+	
+	// Credit card icon
+	
 
 	if (testing) {
 		console.log('Success! Found an available time. Only thing left is to complete the reservation.');
 		return;
 	}
 	
+	// Checklist icon (final reservation approval)
 	const reservationUrl = await completeCheckout(checkoutId, reservationData.phone);
 	return reservationUrl;
 }
