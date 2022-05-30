@@ -1,6 +1,12 @@
 
 import ReservationData from './reservation-data.js';
 
+
+// https://ontopo.co.il/2918799/ (Full bot logic, 5 steps like OCD)
+// https://ontopo.co.il/komarovskysummer
+// https://ontopo.co.il/makura (Everything except credit card, 4 steps) - CHANGE TIME TO NOON
+// https://ontopo.co.il/netofawinery (Everything except credit card, 4 steps) - CHANGE TIME TO NOON
+
 const MONTH = 6; // TODO: change to actual...
 const YEAR = 2022;
 

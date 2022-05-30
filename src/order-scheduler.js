@@ -156,10 +156,3 @@ export async function startScheduler({ testing = false } = {}) {
 
 	log('All orders were successful!\nBot shutting down...');
 }
-
-
-// TODO: Filling the credit card form must be supported
-// TODO: חדר פרטי לילינבלום 41
-// TODO: https://ontopo.co.il/komarovskysummer 
-// TODO: https://ontopo.co.il/makura
-// TODO: https://ontopo.co.il/netofawinery
