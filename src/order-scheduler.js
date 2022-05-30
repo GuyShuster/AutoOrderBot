@@ -1,5 +1,5 @@
 import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday, isSameDay } from 'date-fns';
-import { FullyBookedError, TimeoutError, getAvailableTimeOnDate, finalizeReservation } from './single-reservation.js';
+import { FullyBookedError, TimeoutError, getAvailableTimeOnDate, finalizeReservation, chooseAvailableTimeOnDate } from './single-reservation.js';
 import { describeDates, formatDateToReadable, formatTimeToReadable } from './utils.js';
 import config from './config.js';
 import telegramBotWrapper from './telegram-bot.js';
@@ -96,11 +96,12 @@ async function placeOrder(order, availabilityObjectPriorityLists, testing) {
 				const { date, time: chosenTime, ...additionalAvailabilityData } = await Promise.any(promises);
 				const readableDate = formatDateToReadable(date);
 				const readableTime = formatTimeToReadable(chosenTime);
-				log(`Found an available spot at ${readableTime} on ${readableDate}!\nStarting order attempt...`);
 
 				for (let i = 0; i < config.scheduler.maxFinalizeRetries; i++) {
 					try {
-						const reservationUrl = await finalizeReservation(date, chosenTime, order.reservationData, additionalAvailabilityData, { requestTimeout: minFinalizationTimeout, testing });
+						const checkoutId = await chooseAvailableTimeOnDate(date, chosenTime, order.reservationData.amountOfPeople, additionalAvailabilityData, minFinalizationTimeout);
+						log(`Found an available spot at ${readableTime} on ${readableDate}: https://ontopo.co.il/checkout/${checkoutId}`);
+						const reservationUrl = await finalizeReservation(checkoutId, order.reservationData, { requestTimeout: minFinalizationTimeout, testing });
 						const splitDate = readableDate.split('/');
 						return { reservationUrl, rawDate: new Date(splitDate[2], splitDate[1] - 1, splitDate[0]) };
 					} catch (error) {
@@ -137,8 +138,6 @@ export async function startScheduler({ testing = false } = {}) {
 	const availabilityObjectPriorityLists = getAvailabilityObjectPriorityLists(availabilityObjects);
 	const orders = config.orders;
 
-	log('Started ordering!');
-
 	for (const [orderIndex, order] of orders.entries()) {
 		try {
 			log(`Executing ${order.orderName}`);
@@ -157,3 +156,10 @@ export async function startScheduler({ testing = false } = {}) {
 
 	log('All orders were successful!\nBot shutting down...');
 }
+
+
+// TODO: Filling the credit card form must be supported
+// TODO: חדר פרטי לילינבלום 41
+// TODO: https://ontopo.co.il/komarovskysummer 
+// TODO: https://ontopo.co.il/makura
+// TODO: https://ontopo.co.il/netofawinery

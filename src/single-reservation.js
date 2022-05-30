@@ -4,34 +4,6 @@ import axios from 'axios';
 export class FullyBookedError extends Error {}
 export class TimeoutError extends Error {}
 
-async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOfPeople, additionalAvailabilityData, timeout) {
-	const requestData = {
-		page_id: config.order.pageId,
-		locale: config.order.locale,
-		criteria: {
-			date: chosenDate,
-			time: chosenTime,
-			size: amountOfPeople,
-		},
-		...additionalAvailabilityData,
-	};
-
-	try {
-		const { data: responseData } = await axios.post('https://ontopo.co.il/api/availability/searchAvailability', requestData, { headers: config.headers, timeout });
-
-		if (!responseData.checkout_id) {
-			throw new Error('Choose available time error: no checkout_id was given from the server');
-		}
-
-		return responseData.checkout_id;
-	} catch (error) {
-		if (error.code === 'ECONNABORTED') {
-			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
-		}
-		throw new Error(`Choose available time axios error: ${error.message}`);
-	}
-}
-
 async function fillContactDetails(checkoutId, firstName, lastName, email, phone, timeout) {
 	const requestData = {
 		checkout_id: checkoutId,
@@ -124,18 +96,39 @@ export async function getAvailableTimeOnDate(requestedDate, requestedTime, amoun
 	}
 }
 
-export async function finalizeReservation(date, chosenTime, reservationData, additionalAvailabilityData, { testing = false, requestTimeout = 0 } = {}) {
-	const checkoutId = await chooseAvailableTimeOnDate(date, chosenTime, reservationData.amountOfPeople, additionalAvailabilityData, requestTimeout);
-	// TODO: The checkout ID must be returned and sent to the the telegram bot as https://ontopo.co.il/checkout/<CHECKOUT_ID>
-	// TODO: Filling the credit card form must be supported
-	// TODO: חדר פרטי לילינבלום 41
-	// TODO: https://ontopo.co.il/komarovskysummer 
-	// TODO: https://ontopo.co.il/makura
-	// TODO: https://ontopo.co.il/netofawinery
+export async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOfPeople, additionalAvailabilityData, timeout) {
+	const requestData = {
+		page_id: config.order.pageId,
+		locale: config.order.locale,
+		criteria: {
+			date: chosenDate,
+			time: chosenTime,
+			size: amountOfPeople,
+		},
+		...additionalAvailabilityData,
+	};
+
+	try {
+		const { data: responseData } = await axios.post('https://ontopo.co.il/api/availability/searchAvailability', requestData, { headers: config.headers, timeout });
+
+		if (!responseData.checkout_id) {
+			throw new Error('Choose available time error: no checkout_id was given from the server');
+		}
+
+		return responseData.checkout_id;
+	} catch (error) {
+		if (error.code === 'ECONNABORTED') {
+			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
+		}
+		throw new Error(`Choose available time axios error: ${error.message}`);
+	}
+}
+
+export async function finalizeReservation(checkoutId, reservationData, { testing = false, requestTimeout = 0 } = {}) {
 	await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone, requestTimeout);
 
 	if (testing) {
-		console.log(`Success! got to one step before reservation completion. Checkout ID: ${checkoutId}`);
+		console.log('Success! Found an available time. Only thing left is to complete the reservation.');
 		return;
 	}
 	
