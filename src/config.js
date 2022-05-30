@@ -1,7 +1,6 @@
 
 import ReservationData from './reservation-data.js';
 
-
 // https://ontopo.co.il/2918799/ (Full bot logic, 5 steps like OCD)
 // https://ontopo.co.il/komarovskysummer
 // https://ontopo.co.il/makura (Everything except credit card, 4 steps) - CHANGE TIME TO NOON
@@ -54,20 +53,25 @@ export default {
 				'שוסטר',
 				'guygosha@gmail.com',
 				'0549439700',
+				'5118910001964376',
+				'07',
+				'26',
+				'196',
 			),
 		},
-		{
-			orderName: 'Eyal and Gali\'s order',
-			weekdaysToSkip: [
-				// new Date(YEAR, MONTH - 1, 10), // TODO: decide if needed
-			],
-			reservationData: new ReservationData( // TODO: update with actual info
-				'2',
-				'מאי',
-				'סבן',
-				'maysaban98@gmail.com',
-				'0545620381',
-			),
-		},
+		// TODO: Uncomment and add credit card
+		// {
+		// 	orderName: 'Eyal and Gali\'s order',
+		// 	weekdaysToSkip: [
+		// 		// new Date(YEAR, MONTH - 1, 10), // TODO: decide if needed
+		// 	],
+		// 	reservationData: new ReservationData( // TODO: update with actual info
+		// 		'2',
+		// 		'מאי',
+		// 		'סבן',
+		// 		'maysaban98@gmail.com',
+		// 		'0545620381',
+		// 	),
+		// },
 	],
 };

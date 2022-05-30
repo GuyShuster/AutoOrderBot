@@ -25,10 +25,35 @@ async function fillContactDetails(checkoutId, firstName, lastName, email, phone,
 	}
 }
 
-async function completeCheckout(checkoutId, phone, timeout) {
+async function fillCreditCardDetails(checkoutId, cardNumber, expirationMonth, expirationYear, backOfTheCardCode, timeout) {
+	const requestData = {
+		checkout_id: checkoutId,
+		remember_me: false,
+		creditcard: {
+			number: cardNumber,
+			exp_month: expirationMonth,
+			exp_year: expirationYear,
+			csc: backOfTheCardCode,
+		},
+	};
+
+	try {
+		await axios.post('https://ontopo.co.il/api/checkout/checkoutCreditcard', requestData, { headers: config.headers, timeout });
+	} catch (error) {
+		if (error.code === 'ECONNABORTED') {
+			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
+		}
+		throw new Error(`Fill contact details axios error: ${error.message}`);
+	}
+}
+
+async function completeCheckout(checkoutId, phone, backOfTheCardCode, timeout) {
 	const requestData = {
 		checkout_id: checkoutId,
 		phone,
+		cart: {
+			csc: backOfTheCardCode,
+		},
 	};
 
 	try {
@@ -126,11 +151,12 @@ export async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOf
 
 export async function finalizeReservation(checkoutId, reservationData, { testing = false, requestTimeout = 0 } = {}) {
 	// TODO: Hamburger icon (choose menu)
+
 	// Person icon
 	await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone, requestTimeout);
-	
 	// Credit card icon
-	
+	await fillCreditCardDetails(checkoutId, reservationData.creditCardNumber, reservationData.creditCardExpirationMonth, 
+		reservationData.creditCardExpirationYear, reservationData.backOfTheCardCode, requestTimeout);
 
 	if (testing) {
 		console.log('Success! Found an available time. Only thing left is to complete the reservation.');
@@ -138,6 +164,6 @@ export async function finalizeReservation(checkoutId, reservationData, { testing
 	}
 	
 	// Checklist icon (final reservation approval)
-	const reservationUrl = await completeCheckout(checkoutId, reservationData.phone);
+	const reservationUrl = await completeCheckout(checkoutId, reservationData.phone, reservationData.backOfTheCardCode, requestTimeout);
 	return reservationUrl;
 }
