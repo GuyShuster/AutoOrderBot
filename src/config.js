@@ -17,7 +17,7 @@ export default {
 		secondAlertMinutesBack: 1,
 	},
 	order: {
-		pageId: 'mashya', // TODO: change to actual...
+		pageId: 'makura', // TODO: change to actual...
 		locale: 'he',
 		regionCode: 'il',
 		rememberMe: false,

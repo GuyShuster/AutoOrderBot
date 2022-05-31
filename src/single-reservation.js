@@ -47,6 +47,39 @@ async function fillCreditCardDetails(checkoutId, cardNumber, expirationMonth, ex
 	}
 }
 
+async function getMenu(checkoutId, timeout) {
+	const requestData = {
+		checkout_id: checkoutId,
+		locale: config.order.locale,
+	};
+
+	try {
+		const { data: responseData } = await axios.post('https://ontopo.co.il/api/checkout/getCheckout', requestData, { headers: config.headers, timeout });
+		return responseData;
+	} catch (error) {
+		if (error.code === 'ECONNABORTED') {
+			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
+		}
+		throw new Error(`Fill contact details axios error: ${error.message}`);
+	}
+}
+
+async function chooseMenu(checkoutId, menuData, timeout) {
+	const requestData = {
+		checkout_id: checkoutId,
+		
+	};
+
+	try {
+		await axios.post('https://ontopo.co.il/api/checkout/getCheckout', requestData, { headers: config.headers, timeout });
+	} catch (error) {
+		if (error.code === 'ECONNABORTED') {
+			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
+		}
+		throw new Error(`Fill contact details axios error: ${error.message}`);
+	}
+}
+
 async function completeCheckout(checkoutId, phone, backOfTheCardCode, timeout) {
 	const requestData = {
 		checkout_id: checkoutId,
@@ -150,18 +183,21 @@ export async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOf
 }
 
 export async function finalizeReservation(checkoutId, reservationData, { testing = false, requestTimeout = 0 } = {}) {
-	// TODO: Hamburger icon (choose menu)
+	// Hamburger icon
+	const menuData = await getMenu(checkoutId, requestTimeout);
+	await chooseMenu(checkoutId, menuData, requestTimeout);
 
 	// Person icon
 	await fillContactDetails(checkoutId, reservationData.firstName, reservationData.lastName, reservationData.email, reservationData.phone, requestTimeout);
+
+	if (testing) {
+		console.log('Success! Found an available time and chose menu. Only thing left is credit card + to complete the reservation.');
+		return;
+	}
+
 	// Credit card icon
 	await fillCreditCardDetails(checkoutId, reservationData.creditCardNumber, reservationData.creditCardExpirationMonth, 
 		reservationData.creditCardExpirationYear, reservationData.backOfTheCardCode, requestTimeout);
-
-	if (testing) {
-		console.log('Success! Found an available time. Only thing left is to complete the reservation.');
-		return;
-	}
 	
 	// Checklist icon (final reservation approval)
 	const reservationUrl = await completeCheckout(checkoutId, reservationData.phone, reservationData.backOfTheCardCode, requestTimeout);
