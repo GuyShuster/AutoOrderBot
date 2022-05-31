@@ -1,8 +1,8 @@
 import config from './config.js';
 import axios from 'axios';
 
-export class FullyBookedError extends Error {}
-export class TimeoutError extends Error {}
+export class FullyBookedError extends Error { }
+export class TimeoutError extends Error { }
 
 async function fillContactDetails(checkoutId, firstName, lastName, email, phone, timeout) {
 	const requestData = {
@@ -67,11 +67,21 @@ async function getMenu(checkoutId, timeout) {
 async function chooseMenu(checkoutId, menuData, timeout) {
 	const requestData = {
 		checkout_id: checkoutId,
-		
+		selected_package: {
+			note: {
+				notices: [],
+				noteComment: '',
+				nameComment: '',
+			},
+			products: [
+				
+			],
+		},
+
 	};
 
 	try {
-		await axios.post('https://ontopo.co.il/api/checkout/getCheckout', requestData, { headers: config.headers, timeout });
+		await axios.post('https://ontopo.co.il/api/checkout/checkoutPackage', requestData, { headers: config.headers, timeout });
 	} catch (error) {
 		if (error.code === 'ECONNABORTED') {
 			throw new TimeoutError(`Axios request timed out after ${timeout}ms`);
@@ -118,7 +128,7 @@ function chooseTime(responseData) {
 			}
 		}
 	}
-	
+
 	throw new FullyBookedError('No imediate availability seats');
 }
 
@@ -132,7 +142,7 @@ export async function getAvailableTimeOnDate(requestedDate, requestedTime, amoun
 			size: amountOfPeople,
 		},
 	};
-	
+
 	try {
 		const { data: responseData } = await axios.post('https://ontopo.co.il/api/availability/searchAvailability', requestData, { headers: config.headers, timeout });
 
@@ -140,7 +150,7 @@ export async function getAvailableTimeOnDate(requestedDate, requestedTime, amoun
 			throw new Error('Get available time api error: wrong response format from server (no availability_id)');
 		} else if (!responseData.areas) {
 			throw new FullyBookedError('Get available time error: no available time was found');
-		} else if (responseData.areas[0]?.id  && responseData.areas[0]?.options[0]?.time) {
+		} else if (responseData.areas[0]?.id && responseData.areas[0]?.options[0]?.time) {
 			const chosenTimeObject = chooseTime(responseData);
 			return { ...chosenTimeObject, date: requestedDate };
 		} else {
@@ -196,9 +206,9 @@ export async function finalizeReservation(checkoutId, reservationData, { testing
 	}
 
 	// Credit card icon
-	await fillCreditCardDetails(checkoutId, reservationData.creditCardNumber, reservationData.creditCardExpirationMonth, 
+	await fillCreditCardDetails(checkoutId, reservationData.creditCardNumber, reservationData.creditCardExpirationMonth,
 		reservationData.creditCardExpirationYear, reservationData.backOfTheCardCode, requestTimeout);
-	
+
 	// Checklist icon (final reservation approval)
 	const reservationUrl = await completeCheckout(checkoutId, reservationData.phone, reservationData.backOfTheCardCode, requestTimeout);
 	return reservationUrl;
