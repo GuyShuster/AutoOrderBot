@@ -82,6 +82,7 @@ function checkForAllAvailableTimes(availabilityObjectPriorityList, order, timeou
 }
 
 async function placeOrder(order, availabilityObjectPriorityLists, testing) {
+	// TODO: HANDLE THE CASE WHERE ORDERS OPEN AT 14:02 and from 14:00 until 14:02 everything is closed. SHOULD NOT ABORT!!!
 	let fullyBookedDates = 0;
 	let minTimeSearchTimeout = config.scheduler.minTimeoutMS;
 	let minFinalizationTimeout = config.scheduler.minTimeoutMS;
