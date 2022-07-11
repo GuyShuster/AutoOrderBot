@@ -1,4 +1,4 @@
-import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday, isSameDay } from 'date-fns';
+import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday, isSameDay, add, getMonth, getDay, getDayOfYear, toDate, set } from 'date-fns';
 import { FullyBookedError, TimeoutError, getAvailableTimeOnDate, finalizeReservation, chooseAvailableTimeOnDate } from './single-reservation.js';
 import { describeDates, formatDateToReadable, formatTimeToReadable } from './utils.js';
 import config from './config.js';
@@ -81,15 +81,26 @@ function checkForAllAvailableTimes(availabilityObjectPriorityList, order, timeou
 	return promises;
 }
 
+function isWithinAttempGap(testing) {
+	if (testing) {
+		return true;
+	}
+
+	const now = toDate(new Date());
+	const start = set(now, { hours: config.cronJob.startTimeHours, minutes: config.cronJob.startTimeMinutes, seconds: 0, milliseconds: 0 });
+	const end = add(start, { minutes: config.scheduler.minutesUntilAllowedToExit });
+
+	return isWithinInterval(now, { start, end });
+}
+
 async function placeOrder(order, availabilityObjectPriorityLists, testing) {
-	// TODO: HANDLE THE CASE WHERE ORDERS OPEN AT 14:02 and from 14:00 until 14:02 everything is closed. SHOULD NOT ABORT!!!
 	let fullyBookedDates = 0;
 	let minTimeSearchTimeout = config.scheduler.minTimeoutMS;
 	let minFinalizationTimeout = config.scheduler.minTimeoutMS;
 	const fullyBookedDatesLimit = availabilityObjectPriorityLists.flatMap(availabilityObjectPriorityList => availabilityObjectPriorityList).length;
 
-	// Attempt all dates until fully booked
-	while (fullyBookedDates < fullyBookedDatesLimit) {
+	// Attempt for the first X minutes blindly and continue only if there are places left
+	while (isWithinAttempGap(testing) || fullyBookedDates < fullyBookedDatesLimit) {
 		for (const availabilityObjectPriorityList of availabilityObjectPriorityLists) {
 			const promises = checkForAllAvailableTimes(availabilityObjectPriorityList, order, minTimeSearchTimeout);
 
