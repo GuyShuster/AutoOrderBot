@@ -8,6 +8,7 @@ import ReservationData from './reservation-data.js';
 
 const MONTH_OF_ORDER_ATTEMPT = 9; // TODO: change to actual...
 const YEAR_OF_ORDER_ATTEMPT = 2022;
+const ONTOPO_PAGE_ID = '2918799';
 
 export default {
 	cronJob: {
@@ -17,7 +18,7 @@ export default {
 		secondAlertMinutesBack: 1,
 	},
 	order: {
-		pageId: 'makura', // TODO: change to actual...
+		pageId: ONTOPO_PAGE_ID, // TODO: change to actual...
 		locale: 'he',
 		regionCode: 'il',
 		rememberMe: false,
@@ -49,7 +50,7 @@ export default {
 				// new Date(YEAR, MONTH - 1, 2),
 			],
 			reservationData: new ReservationData(
-				'2',
+				ONTOPO_PAGE_ID === '2918799' ? '12' : '2',
 				'גיא',
 				'שוסטר',
 				'guygosha@gmail.com',

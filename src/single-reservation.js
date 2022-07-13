@@ -76,6 +76,8 @@ async function chooseMenu(checkoutId, menuData, timeout) {
 	const id = menuData?.package?.combo[0]?.items[0]?.product.product_id;
 	const value = Number(menuData?.request?.size);
 
+	const menuSize = menuData?.package?.combo.reduce((count, comboItem) => count + comboItem?.items.length, 0);
+
 	const requestData = {
 		checkout_id: checkoutId,
 		selected_package: {
@@ -86,10 +88,11 @@ async function chooseMenu(checkoutId, menuData, timeout) {
 					id,
 					value,
 					extras: [],
-					...note, // TODO: ?
+					...note,
 					notes: [],
 					includeLocked: null,
-				}
+				},
+				...Array(menuSize - 1).fill(null),
 			],
 		},
 	};
