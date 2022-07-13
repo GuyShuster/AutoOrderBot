@@ -1,14 +1,17 @@
 
 import ReservationData from './reservation-data.js';
 
-// https://ontopo.co.il/2918799/ (Full bot logic, 5 steps like OCD)
-// https://ontopo.co.il/komarovskysummer
-// https://ontopo.co.il/makura (Everything except credit card, 4 steps) - CHANGE TIME TO NOON
-// https://ontopo.co.il/netofawinery (Everything except credit card, 4 steps) - CHANGE TIME TO NOON
+// https://ontopo.co.il/komarovskysummer - NOT AVAILABLE!
+// https://ontopo.co.il/2918799/ (Full bot logic, 5 steps like OCD) - WORKING!
+// https://ontopo.co.il/makura (Everything except credit card, 4 steps) - WORKING!
+// https://ontopo.co.il/netofawinery (Everything except credit card, 4 steps) - WORKING!
+// https://ontopo.co.il/galilmountain
+//
+
 
 const MONTH_OF_ORDER_ATTEMPT = 9; // TODO: change to actual...
 const YEAR_OF_ORDER_ATTEMPT = 2022;
-const ONTOPO_PAGE_ID = '2918799';
+const ONTOPO_PAGE_ID = 'galilmountain';
 
 export default {
 	cronJob: {
