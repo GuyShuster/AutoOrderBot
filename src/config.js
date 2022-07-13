@@ -6,8 +6,8 @@ import ReservationData from './reservation-data.js';
 // https://ontopo.co.il/makura (Everything except credit card, 4 steps) - CHANGE TIME TO NOON
 // https://ontopo.co.il/netofawinery (Everything except credit card, 4 steps) - CHANGE TIME TO NOON
 
-const MONTH = 9; // TODO: change to actual...
-const YEAR = 2022;
+const MONTH_OF_ORDER_ATTEMPT = 9; // TODO: change to actual...
+const YEAR_OF_ORDER_ATTEMPT = 2022;
 
 export default {
 	cronJob: {
@@ -35,8 +35,8 @@ export default {
 		'Referrer-Policy': 'strict-origin-when-cross-origin',
 	},
 	scheduler: {
-		month: MONTH,
-		year: YEAR,
+		month: MONTH_OF_ORDER_ATTEMPT,
+		year: YEAR_OF_ORDER_ATTEMPT,
 		minTimeoutMS: 1000 * 10, // 10 secs
 		maxTimeoutMS: 1000 * 40, // 40 secs
 		maxFinalizeRetries: 3,

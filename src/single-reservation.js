@@ -65,19 +65,33 @@ async function getMenu(checkoutId, timeout) {
 }
 
 async function chooseMenu(checkoutId, menuData, timeout) {
+	const note = {
+		note: {
+			notices: [],
+			noteComment: '',
+			nameComment: '',
+		}
+	};
+	const parentIndex = String(menuData?.package?.combo[0].index);
+	const id = menuData?.package?.combo[0]?.items[0]?.product.product_id;
+	const value = Number(menuData?.request?.size);
+
 	const requestData = {
 		checkout_id: checkoutId,
 		selected_package: {
-			note: {
-				notices: [],
-				noteComment: '',
-				nameComment: '',
-			},
+			...note,
 			products: [
-				
+				{
+					parentIndex,
+					id,
+					value,
+					extras: [],
+					...note, // TODO: ?
+					notes: [],
+					includeLocked: null,
+				}
 			],
 		},
-
 	};
 
 	try {
