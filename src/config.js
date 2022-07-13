@@ -5,13 +5,13 @@ import ReservationData from './reservation-data.js';
 // https://ontopo.co.il/2918799/ (Full bot logic, 5 steps like OCD) - WORKING!
 // https://ontopo.co.il/makura (Everything except credit card, 4 steps) - WORKING!
 // https://ontopo.co.il/netofawinery (Everything except credit card, 4 steps) - WORKING!
-// https://ontopo.co.il/galilmountain
+// https://ontopo.co.il/galilmountain (Random) - Working but something weird is happening with axios timeout... TODO: check
 //
 
 
-const MONTH_OF_ORDER_ATTEMPT = 9; // TODO: change to actual...
+const MONTH_OF_ORDER_ATTEMPT = 8; // TODO: change to actual...
 const YEAR_OF_ORDER_ATTEMPT = 2022;
-const ONTOPO_PAGE_ID = 'galilmountain';
+const ONTOPO_PAGE_ID = 'galilmountain'; // TODO: change to actual...
 
 export default {
 	cronJob: {
@@ -21,7 +21,7 @@ export default {
 		secondAlertMinutesBack: 1,
 	},
 	order: {
-		pageId: ONTOPO_PAGE_ID, // TODO: change to actual...
+		pageId: ONTOPO_PAGE_ID,
 		locale: 'he',
 		regionCode: 'il',
 		rememberMe: false,
