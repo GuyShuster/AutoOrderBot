@@ -6,12 +6,12 @@ import ReservationData from './reservation-data.js';
 // https://ontopo.co.il/makura (Everything except credit card, 4 steps) - CHANGE TIME TO NOON
 // https://ontopo.co.il/netofawinery (Everything except credit card, 4 steps) - CHANGE TIME TO NOON
 
-const MONTH = 6; // TODO: change to actual...
+const MONTH = 9; // TODO: change to actual...
 const YEAR = 2022;
 
 export default {
 	cronJob: {
-		startTimeHours: 12, // TODO: change to actual...
+		startTimeHours: 14, // TODO: change to actual...
 		startTimeMinutes: 0,
 		firstAlertMinutesBack: 5,
 		secondAlertMinutesBack: 1,
@@ -40,6 +40,7 @@ export default {
 		minTimeoutMS: 1000 * 10, // 10 secs
 		maxTimeoutMS: 1000 * 40, // 40 secs
 		maxFinalizeRetries: 3,
+		minutesUntilAllowedToExit: 12,
 	},
 	orders: [
 		{

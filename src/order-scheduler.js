@@ -1,4 +1,4 @@
-import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday, isSameDay, add, getMonth, getDay, getDayOfYear, toDate, set } from 'date-fns';
+import { startOfMonth, endOfMonth, getYear, isWithinInterval, eachDayOfInterval, isSaturday, isSunday, format, isFriday, isThursday, isWednesday, isSameDay, add, getMonth, getDay, getDayOfYear, toDate, set, subMinutes } from 'date-fns';
 import { FullyBookedError, TimeoutError, getAvailableTimeOnDate, finalizeReservation, chooseAvailableTimeOnDate } from './single-reservation.js';
 import { describeDates, formatDateToReadable, formatTimeToReadable } from './utils.js';
 import config from './config.js';
@@ -87,7 +87,8 @@ function isWithinAttempGap(testing) {
 	}
 
 	const now = toDate(new Date());
-	const start = set(now, { hours: config.cronJob.startTimeHours, minutes: config.cronJob.startTimeMinutes, seconds: 0, milliseconds: 0 });
+	const startExact = set(now, { hours: config.cronJob.startTimeHours, minutes: config.cronJob.startTimeMinutes, seconds: 0, milliseconds: 0 });
+	const start = subMinutes(startExact, 2);
 	const end = add(start, { minutes: config.scheduler.minutesUntilAllowedToExit });
 
 	return isWithinInterval(now, { start, end });
