@@ -15,6 +15,7 @@ import ReservationData from './reservation-data.js';
 // const ORDER_TIMES_ON_FRIDAY = ['1145', '1430'];
 // const RESTAURANT_SLUG = '88542392';
 
+// TODO: check for any API + slug changes before uncommenting the real one
 // Lilinblum
 const MONTH_OF_ORDER_ATTEMPT = 8;
 const YEAR_OF_ORDER_ATTEMPT = 2022;
