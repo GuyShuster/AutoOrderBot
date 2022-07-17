@@ -16,7 +16,7 @@ function log(message) {
 
 export function getAvailabilityObjects() {
 	// Check if defined
-	if (!config?.scheduler?.month || !config?.scheduler?.year) {
+	if (!config?.scheduler?.month || !config?.scheduler?.year || !config?.scheduler?.orderTimesOnFriday || !config?.scheduler?.orderTimesOnWeekDay) {
 		throw new Error('No month or year provided');
 	}
 
@@ -48,7 +48,7 @@ export function getAvailabilityObjects() {
 		.map(rawDate => ({
 			rawDate,
 			formattedDate: format(rawDate, 'yyyyMMdd'),
-			times: isFriday(rawDate) ? ['1145', '1430'] : ['1845', '2130'],
+			times: isFriday(rawDate) ? config.scheduler.orderTimesOnFriday : config.scheduler.orderTimesOnWeekDay,
 		}));
 
 	return availabilityObjects;

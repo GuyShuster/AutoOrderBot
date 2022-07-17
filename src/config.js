@@ -2,7 +2,7 @@
 import ReservationData from './reservation-data.js';
 
 // https://ontopo.co.il/komarovskysummer - NOT AVAILABLE!
-// https://ontopo.co.il/2918799/ (Full bot logic, 5 steps like OCD) - WORKING!
+// https://ontopo.co.il/73552371/ (Full bot logic, 5 steps like OCD) - WORKING!
 // https://ontopo.co.il/makura (Everything except credit card, 4 steps) - WORKING!
 // https://ontopo.co.il/netofawinery (Everything except credit card, 4 steps) - WORKING!
 // https://ontopo.co.il/galilmountain (Random) - Working but something weird is happening with axios timeout... TODO: check
@@ -11,20 +11,23 @@ import ReservationData from './reservation-data.js';
 
 const MONTH_OF_ORDER_ATTEMPT = 8; // TODO: change to actual...
 const YEAR_OF_ORDER_ATTEMPT = 2022;
-const ONTOPO_PAGE_ID = 'galilmountain'; // TODO: change to actual...
+const ORDER_TIMES_ON_WEEKDAY = ['1200', '1215', '1230']; // TODO: change to actual: ['1845', '2130']
+const ORDER_TIMES_ON_FRIDAY = ['1145', '1430']; // TODO: change to actual: ['1145', '1430']
+const ONTOPO_SLUG = '73552371'; // TODO: change to actual: 
 
 export default {
 	cronJob: {
-		startTimeHours: 14, // TODO: change to actual...
+		startTimeHours: 12, // TODO: change to actual...
 		startTimeMinutes: 0,
 		firstAlertMinutesBack: 5,
 		secondAlertMinutesBack: 1,
 	},
 	order: {
-		pageId: ONTOPO_PAGE_ID,
+		pageId: ONTOPO_SLUG,
 		locale: 'he',
 		regionCode: 'il',
 		rememberMe: false,
+		slug: '73552371', // TODO: check if correct and relevant!!!
 	},
 	headers: {
 		'accept': 'application/json, text/plain, */*',
@@ -41,6 +44,8 @@ export default {
 	scheduler: {
 		month: MONTH_OF_ORDER_ATTEMPT,
 		year: YEAR_OF_ORDER_ATTEMPT,
+		orderTimesOnWeekDay: ORDER_TIMES_ON_WEEKDAY,
+		orderTimesOnFriday: ORDER_TIMES_ON_FRIDAY,
 		minTimeoutMS: 1000 * 10, // 10 secs
 		maxTimeoutMS: 1000 * 40, // 40 secs
 		maxFinalizeRetries: 3,
@@ -53,7 +58,7 @@ export default {
 				// new Date(YEAR, MONTH - 1, 2),
 			],
 			reservationData: new ReservationData(
-				ONTOPO_PAGE_ID === '2918799' ? '12' : '2',
+				ONTOPO_SLUG === '73552371' ? '12' : '2',
 				'גיא',
 				'שוסטר',
 				'guygosha@gmail.com',

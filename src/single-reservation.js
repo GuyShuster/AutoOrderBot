@@ -151,7 +151,7 @@ function chooseTime(responseData) {
 
 export async function getAvailableTimeOnDate(requestedDate, requestedTime, amountOfPeople, timeout) {
 	const requestData = {
-		page_id: config.order.pageId,
+		slug: config.order.slug,
 		locale: config.order.locale,
 		criteria: {
 			date: requestedDate,
@@ -183,14 +183,15 @@ export async function getAvailableTimeOnDate(requestedDate, requestedTime, amoun
 
 export async function chooseAvailableTimeOnDate(chosenDate, chosenTime, amountOfPeople, additionalAvailabilityData, timeout) {
 	const requestData = {
-		page_id: config.order.pageId,
+		slug: config.order.slug,
 		locale: config.order.locale,
 		criteria: {
+			area: additionalAvailabilityData.area,
 			date: chosenDate,
 			time: chosenTime,
 			size: amountOfPeople,
 		},
-		...additionalAvailabilityData,
+		availabilityId: additionalAvailabilityData.availability_id,
 	};
 
 	try {
