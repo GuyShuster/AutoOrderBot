@@ -8,7 +8,7 @@ function log(message) {
 	console.log(message);
 
 	try {
-		telegramBotWrapper.sendMessage(message);
+		telegramBotWrapper.broadcast(message);
 	} catch (error) {
 		// Best effort, do nothing
 	}

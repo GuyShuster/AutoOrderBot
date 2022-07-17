@@ -8,7 +8,7 @@ async function main() {
 }
 
 function sendAlert(minutesToGo) {
-	telegramBotWrapper.sendMessage(`ALERT!\nBot will launch in ${minutesToGo} minutes`);
+	telegramBotWrapper.broadcast(`ALERT!\nBot will launch in ${minutesToGo} minutes`);
 }
 
 function normalizeAlertTime(minutesBack) {

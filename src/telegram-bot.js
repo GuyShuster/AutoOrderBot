@@ -20,6 +20,8 @@ class TelegramBotWrapper {
 			}
 
 			if (!this.chatIds.includes(chatId)) {
+				// TODO: test this with Baybz
+				this.broadcast(`${firstName.charAt(0).toUpperCase() + firstName.slice(1)} joined the chat!`);
 				this.chatIds.push(chatId);
 			}
 
@@ -28,7 +30,7 @@ class TelegramBotWrapper {
 				this.telegramBot.sendMessage(chatId, `Hey ${firstName.toLowerCase() === 'may' ? 'Baybz ❤' : firstName}!\nOCD bot updates here, stay tuned...`);
 				break;
 			case '/kill':
-				this.telegramBot.sendMessage(chatId, `Terminating bot...\n${TIMEOUT_BEFORE_SUICIDE / 1000} seconds before suicide...`);
+				this.broadcast(chatId, `Terminating bot...\n${TIMEOUT_BEFORE_SUICIDE / 1000} seconds before suicide...`);
 				setTimeout(() => {
 					process.exit(0);
 				}, TIMEOUT_BEFORE_SUICIDE);
@@ -42,8 +44,7 @@ class TelegramBotWrapper {
 		});
 	}
 
-	sendMessage(message) {
-		// TODO: test if two people can receive messages
+	broadcast(message) {
 		for (const chatId of this.chatIds) {
 			this.telegramBot.sendMessage(chatId, message);
 		}
