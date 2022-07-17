@@ -122,7 +122,6 @@ async function placeOrder(order, availabilityObjectPriorityLists, testing) {
 							minFinalizationTimeout = Math.min(minFinalizationTimeout * 2, config.scheduler.maxTimeoutMS);
 							log(`Finalization attempt timed out. Increasing minimal timeout to ${minFinalizationTimeout / 1000} seconds...`);
 						} else {
-							// TODO: Maybe check here if it failed because of the unknown thing and stop trying, just time finding
 							log(`Finalization attempt failed: ${error.message}`);
 						}
 					}
