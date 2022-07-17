@@ -6,28 +6,34 @@ import ReservationData from './reservation-data.js';
 // https://ontopo.co.il/makura (Everything except credit card, 4 steps) - WORKING!
 // https://ontopo.co.il/netofawinery (Everything except credit card, 4 steps) - WORKING!
 // https://ontopo.co.il/galilmountain (Random) - Working but something weird is happening with axios timeout... TODO: check
-//
 
+// TODO: UNCOMMENT
+// OCD
+// const MONTH_OF_ORDER_ATTEMPT = 11;
+// const YEAR_OF_ORDER_ATTEMPT = 2022;
+// const ORDER_TIMES_ON_WEEKDAY = ['1845', '2130'];
+// const ORDER_TIMES_ON_FRIDAY = ['1145', '1430'];
+// const RESTAURANT_SLUG = '88542392';
 
-const MONTH_OF_ORDER_ATTEMPT = 8; // TODO: change to actual...
+// Lilinblum
+const MONTH_OF_ORDER_ATTEMPT = 8;
 const YEAR_OF_ORDER_ATTEMPT = 2022;
-const ORDER_TIMES_ON_WEEKDAY = ['1200', '1215', '1230']; // TODO: change to actual: ['1845', '2130']
-const ORDER_TIMES_ON_FRIDAY = ['1145', '1430']; // TODO: change to actual: ['1145', '1430']
-const ONTOPO_SLUG = '73552371'; // TODO: change to actual: 
+const ORDER_TIMES_ON_WEEKDAY = ['1200', '1215', '1230'];
+const ORDER_TIMES_ON_FRIDAY = ['1145', '1430'];
+const RESTAURANT_SLUG = '73552371';
 
 export default {
 	cronJob: {
-		startTimeHours: 12, // TODO: change to actual...
+		startTimeHours: 12, // TODO: change to actual and validate (14)
 		startTimeMinutes: 0,
 		firstAlertMinutesBack: 5,
 		secondAlertMinutesBack: 1,
 	},
 	order: {
-		pageId: ONTOPO_SLUG,
 		locale: 'he',
 		regionCode: 'il',
 		rememberMe: false,
-		slug: '73552371', // TODO: check if correct and relevant!!!
+		slug: RESTAURANT_SLUG,
 	},
 	headers: {
 		'accept': 'application/json, text/plain, */*',
@@ -58,7 +64,7 @@ export default {
 				// new Date(YEAR, MONTH - 1, 2),
 			],
 			reservationData: new ReservationData(
-				ONTOPO_SLUG === '73552371' ? '12' : '2',
+				RESTAURANT_SLUG === '73552371' ? '12' : '2',
 				'גיא',
 				'שוסטר',
 				'guygosha@gmail.com',
