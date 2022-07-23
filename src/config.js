@@ -15,6 +15,8 @@ import ReservationData from './reservation-data.js';
 // const ORDER_TIMES_ON_FRIDAY = ['1145', '1430'];
 // const RESTAURANT_SLUG = '88542392';
 
+// TODO: make sure the computer does not restart 
+
 // TODO: check for any API + slug changes before uncommenting the real one
 // Lilinblum
 const MONTH_OF_ORDER_ATTEMPT = 8;
@@ -25,8 +27,8 @@ const RESTAURANT_SLUG = '73552371';
 
 export default {
 	cronJob: {
-		startTimeHours: 12, // TODO: change to actual and validate (14)
-		startTimeMinutes: 0,
+		startTimeHours: 13, // TODO: change to actual and validate (14)
+		startTimeMinutes: 30,
 		firstAlertMinutesBack: 5,
 		secondAlertMinutesBack: 1,
 	},
@@ -76,18 +78,37 @@ export default {
 				'196',
 			),
 		},
-		// TODO: Uncomment and add credit card
+		// TODO: Uncomment
 		// {
 		// 	orderName: 'Eyal and Gali\'s order',
 		// 	weekdaysToSkip: [
-		// 		// new Date(YEAR, MONTH - 1, 10), // TODO: decide if needed
+				
 		// 	],
 		// 	reservationData: new ReservationData( // TODO: update with actual info
-		// 		'2',
-		// 		'מאי',
+		// 		'אייל',
 		// 		'סבן',
 		// 		'maysaban98@gmail.com',
 		// 		'0545620381',
+		// 		'5326102314607540',
+		// 		'12',
+		// 		'24',
+		// 		'510',
+		// 	),
+		// },
+		// {
+		// 	orderName: 'Almog and Hadar\'s order',
+		// 	weekdaysToSkip: [
+				
+		// 	],
+		// 	reservationData: new ReservationData( // TODO: update with actual info
+		// 		'אלמוג',
+		// 		'בוקובזה',
+		// 		'almogishot@gmail.com',
+		// 		'0508838507',
+		// 		'4580030829592747',
+		// 		'02',
+		// 		'27',
+		// 		'900',
 		// 	),
 		// },
 	],
