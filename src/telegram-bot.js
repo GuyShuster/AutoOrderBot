@@ -20,7 +20,6 @@ class TelegramBotWrapper {
 			}
 
 			if (!this.chatIds.includes(chatId)) {
-				// TODO: test this with Baybz
 				this.broadcast(`${firstName.charAt(0).toUpperCase() + firstName.slice(1)} joined the chat!`);
 				this.chatIds.push(chatId);
 			}

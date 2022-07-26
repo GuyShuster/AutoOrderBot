@@ -7,28 +7,24 @@ import ReservationData from './reservation-data.js';
 // https://ontopo.co.il/netofawinery (Everything except credit card, 4 steps) - WORKING!
 // https://ontopo.co.il/galilmountain (Random) - Working but something weird is happening with axios timeout... TODO: check
 
-// TODO: UNCOMMENT
 // OCD
-// const MONTH_OF_ORDER_ATTEMPT = 11;
-// const YEAR_OF_ORDER_ATTEMPT = 2022;
-// const ORDER_TIMES_ON_WEEKDAY = ['1845', '2130'];
-// const ORDER_TIMES_ON_FRIDAY = ['1145', '1430'];
-// const RESTAURANT_SLUG = '88542392';
-
-// TODO: make sure the computer does not restart 
-
-// TODO: check for any API + slug changes before uncommenting the real one
-// Lilinblum
-const MONTH_OF_ORDER_ATTEMPT = 8;
+const MONTH_OF_ORDER_ATTEMPT = 11;
 const YEAR_OF_ORDER_ATTEMPT = 2022;
-const ORDER_TIMES_ON_WEEKDAY = ['1200', '1215', '1230'];
+const ORDER_TIMES_ON_WEEKDAY = ['1845', '2130'];
 const ORDER_TIMES_ON_FRIDAY = ['1145', '1430'];
-const RESTAURANT_SLUG = '73552371';
+const RESTAURANT_SLUG = '88542392';
+
+// Lilinblum
+// const MONTH_OF_ORDER_ATTEMPT = 8;
+// const YEAR_OF_ORDER_ATTEMPT = 2022;
+// const ORDER_TIMES_ON_WEEKDAY = ['1200', '1215', '1230'];
+// const ORDER_TIMES_ON_FRIDAY = ['1145', '1430'];
+// const RESTAURANT_SLUG = '73552371';
 
 export default {
 	cronJob: {
-		startTimeHours: 13, // TODO: change to actual and validate (14)
-		startTimeMinutes: 30,
+		startTimeHours: 14,
+		startTimeMinutes: 0,
 		firstAlertMinutesBack: 5,
 		secondAlertMinutesBack: 1,
 	},
@@ -64,7 +60,7 @@ export default {
 		{
 			orderName: 'May and Guy\'s order',
 			weekdaysToSkip: [
-				// new Date(YEAR, MONTH - 1, 2),
+				
 			],
 			reservationData: new ReservationData(
 				RESTAURANT_SLUG === '73552371' ? '12' : '2',
@@ -77,39 +73,6 @@ export default {
 				'26',
 				'196',
 			),
-		},
-		// TODO: Uncomment
-		// {
-		// 	orderName: 'Eyal and Gali\'s order',
-		// 	weekdaysToSkip: [
-				
-		// 	],
-		// 	reservationData: new ReservationData( // TODO: update with actual info
-		// 		'אייל',
-		// 		'סבן',
-		// 		'maysaban98@gmail.com',
-		// 		'0545620381',
-		// 		'5326102314607540',
-		// 		'12',
-		// 		'24',
-		// 		'510',
-		// 	),
-		// },
-		// {
-		// 	orderName: 'Almog and Hadar\'s order',
-		// 	weekdaysToSkip: [
-				
-		// 	],
-		// 	reservationData: new ReservationData( // TODO: update with actual info
-		// 		'אלמוג',
-		// 		'בוקובזה',
-		// 		'almogishot@gmail.com',
-		// 		'0508838507',
-		// 		'4580030829592747',
-		// 		'02',
-		// 		'27',
-		// 		'900',
-		// 	),
-		// },
+		}
 	],
 };
